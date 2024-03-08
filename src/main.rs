@@ -17,6 +17,9 @@ fn main() {
         Some("build") => {
             frontend::service::build();
         }
+        Some("init") => {
+            frontend::service::init();
+        }
         _ => {
             println!("Unknown subcommand")
         }

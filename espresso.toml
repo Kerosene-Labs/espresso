@@ -1,2 +1,9 @@
 [project]
 name = "My Espresso Project"
+version = "1.0.0"
+artifact = "build.jar"
+
+[toolchain]
+path = "${JAVA_HOME}"
+
+[dependencies]
