@@ -1,2 +1,2 @@
 # Espresso
-An opinionated build tool for Java. Because Maven and Gradle are disasterous messes.
+An opinionated build tool for Java applications.

@@ -1,12 +1,13 @@
 use std::process::exit;
 
-use crate::backend::project;
+use crate::backend::project::{self, load};
 
 /**
  * Service function for the `build` command
  */
 pub fn build() {
-    project::load()
+    let loaded_project = project::load();
+
 }
 
 /**
@@ -21,5 +22,5 @@ pub fn init() {
 
     // if the project doesn't exist, create it
     project::initialize();
-    println!("Project created: Open espresso.toml to check it out!");
+    println!("Project created: Edit espresso.toml to check it out!");
 }

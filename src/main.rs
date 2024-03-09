@@ -1,3 +1,4 @@
+
 use clap::Command;
 mod frontend;
 mod backend;
@@ -8,8 +9,8 @@ fn main() {
         .version("1.0.0")
         .about("Build Java apps without the fuss of antiquated build tools. Drink some Espresso.")
         .subcommand_required(true)
-        .subcommand(frontend::command::get_build_cmd())
-        .subcommand(frontend::command::get_init_cmd());
+        .subcommand((&*frontend::command::BUILD_CMD).clone())
+        .subcommand((&*frontend::command::INIT_CMD).clone());
     
     let matches = cmd.get_matches();
     

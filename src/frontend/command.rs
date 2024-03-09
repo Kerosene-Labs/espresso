@@ -1,16 +1,14 @@
-use clap::{Command, App};
+use clap::{Command};
+use once_cell::sync::Lazy;
 
-/*
- * Get the build command
- */
-pub fn get_build_cmd() -> App<'static> {
+pub static BUILD_CMD: Lazy<Command> = Lazy::new(|| {
     Command::new("build")
     .about("Build your Java project into a standalone .jar")
     .alias("b")
-}
+});
 
-pub fn get_init_cmd() -> App<'static> {
+pub static INIT_CMD: Lazy<Command> = Lazy::new(|| {
     Command::new("init")
     .about("Initialize a new Espresso project")
     .alias("i")
-}
+});
