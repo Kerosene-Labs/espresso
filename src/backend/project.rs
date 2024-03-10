@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs, io::Error, path::Path, sync::Mutex};
+use std::{collections::HashMap, fs, path::Path};
 
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
@@ -8,14 +8,14 @@ const ESPRESSO_CONFIG_PATH: &str = "espresso.toml";
 
 pub static LOADED_CONFIG: OnceCell<Config> = OnceCell::new();
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Config {
     pub project: Project,
     pub toolchain: Toolchain,
     pub dependencies: std::collections::HashMap<String, String>,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Project {
     pub name: String,
     pub version: String,
@@ -23,7 +23,7 @@ pub struct Project {
     pub base_package: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Toolchain {
     pub path: String,
 }
@@ -34,7 +34,7 @@ pub struct Toolchain {
 pub fn load_config() {
     let contents = fs::read_to_string(ESPRESSO_CONFIG_PATH).expect("Unable to read conig file");
     let cfg = toml::from_str(&contents).unwrap();
-    LOADED_CONFIG.set(cfg);
+    LOADED_CONFIG.set(cfg).expect("failed to load config");
 }
 
 /**
@@ -76,12 +76,12 @@ pub fn initialize_source_tree() -> Result<(), String> {
     }
 
     // build our src main package string
-    let mut main_package: String;
+    let main_package: String;
 
     // read the config,
     if let Some(cfg) = config {
         main_package = format!("src/{}", cfg.project.base_package.replace(".", "/"));
-        std::fs::create_dir_all(main_package);
+        std::fs::create_dir_all(main_package).expect("failed to create main package directories in file system")
     }
     Ok(())
 }
