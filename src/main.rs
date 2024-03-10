@@ -1,5 +1,6 @@
 
 use clap::Command;
+use frontend::terminal::print_err;
 mod frontend;
 mod backend;
 
@@ -22,7 +23,7 @@ fn main() {
             frontend::service::init();
         }
         _ => {
-            println!("Unknown subcommand")
+            print_err("Unknown subcommand")
         }
     }
 }

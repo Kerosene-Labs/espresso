@@ -1,13 +1,16 @@
+use crate::backend::project::{self, load_config};
+use crate::frontend::terminal::print_err;
 use std::process::exit;
 
-use crate::backend::project::{self, load};
+use super::terminal::print_general;
 
 /**
  * Service function for the `build` command
  */
 pub fn build() {
-    let loaded_project = project::load();
-
+    load_config();
+    print_general("Building project...");
+    unimplemented!("build project");
 }
 
 /**
@@ -16,11 +19,11 @@ pub fn build() {
 pub fn init() {
     // check if the project exists
     if project::does_exist() {
-        eprintln!("Unable to create project: Espresso project already exists");
+        print_err("Unable to create project: Espresso project already exists");
         exit(1);
     }
 
     // if the project doesn't exist, create it
-    project::initialize();
-    println!("Project created: Edit espresso.toml to check it out!");
+    project::initialize_config();
+    print_general("Project created: Edit espresso.toml to check it out!");
 }

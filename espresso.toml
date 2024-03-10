@@ -1,9 +1,0 @@
-dependencies = []
-
-[project]
-name = "My Espresso Project"
-version = "1.0.0"
-artifact = "artifact.jar"
-
-[toolchain]
-path = "${JAVA_HOME}"
