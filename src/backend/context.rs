@@ -3,6 +3,6 @@ use crate::backend::project::Config;
 /**
  * Represents the current context of this process
  */
-struct Context {
+struct ProjectContext {
     config: Config,
 }
