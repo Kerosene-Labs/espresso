@@ -7,15 +7,15 @@ use colored::*;
  * This differs from panics as we want a nice, readable output for the user.
  */
 pub fn print_err(msg: &str) {
-    eprintln!("{} {}", "[ERR]".red().bold(), msg.white());
+    eprintln!("{} {}", "[X]".red().bold(), msg.white());
     exit(1);
 }
 
 pub fn print_general(msg: &str) {
-    println!("{} {}", "[:-)]".bright_white().bold(), msg.white())
+    println!("{} {}", "[.]".bright_white().bold(), msg.white())
 }
 
 pub fn print_sameline(msg: &str) {
-    print!("{} {}", "[???]".italic().bold().yellow(), msg.white());
+    print!("{} {}", "[?]".bold().yellow(), msg.white());
     io::stdout().flush().unwrap();
 }
