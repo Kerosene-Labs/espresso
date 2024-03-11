@@ -52,16 +52,21 @@ pub fn get_config_path() -> String {
     }
 }
 
+pub fn get_absolute_project_path() -> String {
+    let debug_mode = get_debug_mode();
+    let current_dir = env::current_dir().unwrap().to_string_lossy().into_owned();
+    if debug_mode {
+        current_dir + "/espresso_debug"
+    } else {
+        current_dir
+    }
+}
+
 /**
  * Get the source path. Note, this value is prefixed with `espresso_debug` if ESPRESSO_DEBUG=1
  */
 pub fn get_source_path() -> String {
-    let debug_mode = get_debug_mode();
-    if debug_mode {
-        "espresso_debug/src/java".to_string()
-    } else {
-        "src/java".to_string()
-    }
+    (get_absolute_project_path() + "/src/java").to_string()
 }
 
 /**

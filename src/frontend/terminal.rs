@@ -15,6 +15,10 @@ pub fn print_general(msg: &str) {
     println!("{} {}", "[.]".bright_white().bold(), msg.white())
 }
 
+pub fn print_debug(msg: &str) {
+    println!("{} {}", "[D]".green().bold(), msg.white())
+}
+
 pub fn print_sameline(msg: &str) {
     print!("{} {}", "[?]".bold().yellow(), msg.white());
     io::stdout().flush().unwrap();

@@ -4,6 +4,7 @@ use clap::Command;
 use frontend::terminal::print_err;
 mod frontend;
 mod backend;
+mod util;
 
 fn main() {
     let cmd = Command::new("Espresso")

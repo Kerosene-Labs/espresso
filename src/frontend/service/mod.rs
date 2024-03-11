@@ -1,6 +1,7 @@
 use std::io;
 
 use crate::backend;
+use crate::backend::toolchain::compile_project;
 use crate::frontend::terminal::{print_err, print_sameline};
 
 use super::terminal::print_general;
@@ -13,7 +14,21 @@ pub fn build() {
     print_general(format!("Building '{}'", &p_ctx.config.project.name).as_str());
     
     // get our toolchain context
-    let tc_ctx = backend::toolchain::get_toolchain_context(p_ctx);
+    let tc_ctx = backend::toolchain::get_toolchain_context(&p_ctx);
+    print_general(format!("Using '{}' as toolchain", tc_ctx.toolchain_path.to_string_lossy()).as_str());
+
+    // walk our src directory, find source files
+    let java_files = backend::toolchain::get_java_source_files(&p_ctx).unwrap();
+    print_general(
+        format!("Discovered {} source file(s) in base package '{}'", 
+        java_files.len(),
+        &p_ctx.config.project.base_package,
+    ).as_str());
+
+    // compile the project
+    compile_project(java_files, &p_ctx, &tc_ctx);
+
+    print_general("  ^~~^   ...done!")
 
 }
 

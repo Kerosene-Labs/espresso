@@ -11,3 +11,4 @@ serde = {version = "1.0.197", features = ["derive"]}
 clap = { version = "3.2.20", features = ["cargo"] }
 colored = "2.1.0"
 once_cell = "1.19.0"
+walkdir = "2.5.0"
