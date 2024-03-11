@@ -142,7 +142,7 @@ public class Main {
 }
 
 fn process_input(x: String, default: String) -> String {
-    let mut new = x.replace("\n", "");
+    let new = x.replace("\n", "");
     if new.is_empty() {
         return default;
     }
