@@ -1,4 +1,4 @@
-use std::io::{self, Write};
+use std::io;
 
 use crate::backend;
 use crate::frontend::terminal::{print_err, print_sameline};
@@ -9,19 +9,24 @@ use super::terminal::print_general;
  * Service function for the `build` command
  */
 pub fn build() {
-    print_general("Building project...");
-    unimplemented!("build project");
+    let p_ctx = backend::context::get_project_context();
+    print_general(format!("Building '{}'", &p_ctx.config.project.name).as_str());
+    
+    // get our toolchain context
+    let tc_ctx = backend::toolchain::get_toolchain_context(p_ctx);
+
 }
 
 /**
  * Service function for the `init` command
  */
 pub fn init() {
-    print_general("Tell us a bit about your project...");
     // check if the project exists
     if backend::project::does_exist() {
-        print_err("Unable to create project: Espresso project (or remnants) already exist");
+        print_err("Unable to initialize project: An Espresso project (or remnants of one) already exist");
     }
+
+    print_general("Tell us a bit about your project!");
 
     // collect the name
     let mut name = String::new();
