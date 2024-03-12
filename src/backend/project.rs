@@ -1,13 +1,8 @@
 use crate::util::pathutil;
 
-use super::context::{AbsoltuePaths, DynamicAbsolutePaths, ProjectContext};
+use super::context::{AbsoltuePaths, ProjectContext};
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::HashMap,
-    env,
-    fs::{self, create_dir_all},
-    path::Path,
-};
+use std::{collections::HashMap, fs, io};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Config {
@@ -57,10 +52,13 @@ pub fn does_exist(ap: &AbsoltuePaths) -> bool {
 /**
  * Initialize the source tree
  */
-pub fn initialize_source_tree(p_ctx: &ProjectContext) {
+pub fn initialize_source_tree(p_ctx: &ProjectContext) -> io::Result<()>{
+    // get the base backage (dot notation) and the base package path on the fs
     let base_package_path = p_ctx.dynamic_absolute_paths.base_package.clone();
-    std::fs::create_dir_all(&base_package_path)
-        .expect("failed to create main package directories in file system");
+    let base_package = p_ctx.config.project.base_package.clone();
+
+    // ensure the base package path exists
+    std::fs::create_dir_all(&base_package_path)?;
 
     // create the Main.java file (textwrap doesn't work????)
     let base_java_content = r#"package ${BASE_PACKAGE};
@@ -71,12 +69,15 @@ public class Main {
         System.out.println("Hello, world!");
     }
 }"#
-    .replace("${BASE_PACKAGE}", &base_package_path);
+    .replace("${BASE_PACKAGE}", &base_package);
 
+    // write an example java file
     std::fs::write(
         base_package_path.clone() + "/Main.java",
         base_java_content,
-    );
+    )?;
+
+    Ok(())
 }
 
 fn process_input(x: String, default: String) -> String {
@@ -90,8 +91,8 @@ fn process_input(x: String, default: String) -> String {
 /**
  * Initialize a config
  */
-pub fn initialize_config(name: String, base_package: String, ap: &AbsoltuePaths) {
-    // process the name
+pub fn initialize_config(name: String, base_package: String, ap: &AbsoltuePaths) -> io::Result<()> {
+
     // populate a base_config struct
     let base_config = Config {
         project: Project {
@@ -107,5 +108,22 @@ pub fn initialize_config(name: String, base_package: String, ap: &AbsoltuePaths)
 
     // write it to a toml string, then write it to the config file
     let toml_string = toml::to_string(&base_config).expect("Failed to serialize struct");
-    fs::write(ap.config.clone(), toml_string).expect("Failed to write config file")
+    fs::write(ap.config.clone(), toml_string)?;
+    Ok(())
+}
+
+
+/// Ensure the project environment is properly setup
+/// 
+/// # Arguments
+/// * `ap`: Reference to an `AbsolutePaths` struct
+/// * `debug_mode`: Reference to a bool that defines if we're in debug mode or not
+/// 
+/// # Returns
+/// `io::Result`, propagated from `fs::create_dir`
+pub fn ensure_environment(ap: &AbsoltuePaths, debug_mode: &bool) -> io::Result<()>{
+    if *debug_mode {
+        fs::create_dir(&ap.project)?
+    }
+    Ok(())
 }

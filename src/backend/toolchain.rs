@@ -55,7 +55,6 @@ pub fn get_toolchain_context(p_ctx: &ProjectContext) -> ToolchainContext {
  * Get a list of source files
  */
 pub fn get_java_source_files(p_ctx: &ProjectContext) -> Result<Vec<String>, std::io::Error> {
-    // 
     let base_package = p_ctx.dynamic_absolute_paths.base_package.clone();
 
     let files = util::directory::read_files_recursively(base_package);

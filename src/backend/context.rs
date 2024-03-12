@@ -1,9 +1,9 @@
 use std::{
     cell::{Cell, RefCell},
-    env,
+    env, fs, io,
 };
 
-use crate::backend::project::Config;
+use crate::{backend::project::Config, frontend::terminal::print_err};
 
 use super::project::get_config_from_fs;
 
@@ -114,6 +114,7 @@ pub fn get_project_context() -> ProjectContext {
     let absolute_paths = get_absolute_paths(&debug_mode);
     let config = get_config_from_fs(&absolute_paths);
     let dynamic_absolute_paths = get_dynamic_absolute_paths(&absolute_paths, &config);
+    
     ProjectContext {
         config,
         absolute_paths,
