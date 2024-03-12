@@ -1,9 +1,6 @@
-use std::{
-    cell::{Cell, RefCell},
-    env, fs, io,
-};
+use std::{env, error, io, result};
 
-use crate::{backend::project::Config, frontend::terminal::print_err};
+use crate::backend::project::Config;
 
 use super::project::get_config_from_fs;
 
@@ -66,21 +63,19 @@ pub fn get_debug_mode() -> bool {
 /// # Returns
 ///
 /// AbsolutePaths
-pub fn get_absolute_paths(debug_mode: &bool) -> AbsoltuePaths {
-    let mut cwd = env::current_dir()
-        .expect("Failed to read the current working directory; are you in a shell?")
-        .to_string_lossy()
-        .into_owned();
+pub fn get_absolute_paths(debug_mode: &bool) -> io::Result<AbsoltuePaths> {
+    let cwd = env::current_dir()?;
+    let mut cwd_string: String = cwd.to_string_lossy().into_owned();
 
     if *debug_mode {
-        cwd += "/espresso_debug"
+        cwd_string += "/espresso_debug";
     }
 
-    AbsoltuePaths {
-        project: cwd.clone(),
-        source: cwd.clone() + "/src/java",
-        config: cwd.clone() + "/espresso.toml",
-    }
+    Ok(AbsoltuePaths {
+        project: cwd_string.clone(),
+        source: cwd_string.clone() + "/src/java",
+        config: cwd_string.clone() + "/espresso.toml",
+    })
 }
 
 /// Get a DynamicAbsolutePaths struct.
@@ -109,16 +104,16 @@ pub fn get_dynamic_absolute_paths(ap: &AbsoltuePaths, config: &Config) -> Dynami
 /// # Returns
 ///
 /// ProjectContext
-pub fn get_project_context() -> ProjectContext {
+pub fn get_project_context() -> result::Result<ProjectContext, Box<dyn error::Error>> {
     let debug_mode = get_debug_mode();
-    let absolute_paths = get_absolute_paths(&debug_mode);
-    let config = get_config_from_fs(&absolute_paths);
+    let absolute_paths = get_absolute_paths(&debug_mode)?;
+    let config = get_config_from_fs(&absolute_paths)?;
     let dynamic_absolute_paths = get_dynamic_absolute_paths(&absolute_paths, &config);
     
-    ProjectContext {
+    Ok(ProjectContext {
         config,
         absolute_paths,
         debug_mode,
         dynamic_absolute_paths,
-    }
+    })
 }
