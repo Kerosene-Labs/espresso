@@ -25,9 +25,14 @@ pub fn build() {
         &p_ctx.config.project.base_package,
     ).as_str());
 
-    // compile the project
+    // compile the project to class files
+    print_general("Compiling");
     compile_project(java_files, &p_ctx, &tc_ctx);
 
+    // build our jar
+    print_general("Packaging");
+    backend::toolchain::build_jar(&p_ctx, &tc_ctx);
+    
     print_general("  ^~~^   ...done!")
 
 }
