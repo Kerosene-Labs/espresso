@@ -120,6 +120,9 @@ pub fn init() {
         print_err("Failed to read user input for base package")
     }
 
+    // ensure our environment is setup
+    backend::project::ensure_environment(&ap, &backend::context::get_debug_mode());
+
     // initialize the config
     backend::project::initialize_config(name, base_package, &ap);
 
