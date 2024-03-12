@@ -97,9 +97,10 @@ pub fn compile_project(java_files: Vec<String>, p_ctx: &ProjectContext, tc_ctx: 
     for file in java_files {
         // build our compiler string
         let cmd = format!(
-            "{} {} -d {}/build",
+            "{} {} -d {}/build -cp {}/build",
             &compiler_path,
             file,
+            get_absolute_project_path(),
             get_absolute_project_path()
         );
 
@@ -154,7 +155,17 @@ pub fn build_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) {
     let remove_artifact_res = fs::remove_file(get_absolute_project_path() + "/build/artifact.jar");
     match remove_artifact_res {
         Ok(_) => (),
-        Err(_) => print_err("Unable to cleanup 'build/artifact.jar'"),
+        Err(e) => {
+            if e.raw_os_error().unwrap() != 2 {
+                print_err(
+                    format!(
+                        "Unable to cleanup 'artifact.jar': {}",
+                        e.to_string().as_str()
+                    )
+                    .as_str(),
+                );
+            }
+        }
     }
 
     // build our packager command
@@ -197,9 +208,8 @@ pub fn run_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) {
         Ok(v) => {
             if !v.success() {
                 print_err("java virtual machine (java) exited with error(s)");
-
             }
-        },
+        }
         Err(e) => {
             print_err("unable to execute java virtual machine command");
         }
