@@ -1,11 +1,12 @@
 use std::io;
 
-use crate::backend;
+use crate::backend::{self, context, project};
 use crate::backend::context::{get_project_context, ProjectContext};
 use crate::backend::toolchain::{
     compile_project, get_toolchain_context, run_jar, ToolchainContext,
 };
 use crate::frontend::terminal::{print_err, print_sameline};
+use crate::util::pathutil;
 
 use super::terminal::print_general;
 
@@ -93,8 +94,11 @@ pub fn build(
  * Service function for the `init` command
  */
 pub fn init() {
+    // get absolute paths
+    let ap = context::get_absolute_paths(&context::get_debug_mode());
+
     // check if the project exists
-    if backend::project::does_exist() {
+    if project::does_exist(&ap){
         print_err(
             "Unable to initialize project: An Espresso project (or remnants of one) already exist",
         );
@@ -117,7 +121,7 @@ pub fn init() {
     }
 
     // initialize the config
-    backend::project::initialize_config(name, base_package);
+    backend::project::initialize_config(name, base_package, &ap);
 
     // get our project context
     let p_ctx = backend::context::get_project_context();

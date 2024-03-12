@@ -55,8 +55,12 @@ pub fn get_toolchain_context(p_ctx: &ProjectContext) -> ToolchainContext {
  * Get a list of source files
  */
 pub fn get_java_source_files(p_ctx: &ProjectContext) -> Result<Vec<String>, std::io::Error> {
-    let base_package = project::get_full_base_package_path(&p_ctx);
+    // 
+    let base_package = p_ctx.dynamic_absolute_paths.base_package.clone();
+
     let files = util::directory::read_files_recursively(base_package);
+
+    print!("fuck: {}", p_ctx.dynamic_absolute_paths.base_package);
 
     // begin sorting out java files
     let mut java_files: Vec<String> = vec![];
@@ -95,8 +99,8 @@ pub fn compile_project(java_files: Vec<String>, p_ctx: &ProjectContext, tc_ctx: 
             "{} {} -d {}/build -cp {}/build",
             &compiler_path,
             file,
-            get_absolute_project_path(),
-            get_absolute_project_path()
+            &p_ctx.absolute_paths.project,
+            &p_ctx.absolute_paths.project
         );
 
         print_debug(format!("Running '{}'", cmd).as_str());
@@ -131,7 +135,7 @@ fn get_manifest(p_ctx: &ProjectContext) -> String {
  */
 pub fn write_manifest(p_ctx: &ProjectContext) -> io::Result<()> {
     std::fs::write(
-        get_absolute_project_path() + "/build/MANIFEST.MF",
+        p_ctx.absolute_paths.project.clone() + "/build/MANIFEST.MF",
         get_manifest(p_ctx),
     )
 }
@@ -147,7 +151,7 @@ pub fn build_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) {
     let relative_base_package_path = p_ctx.config.project.base_package.clone().replace(".", "/");
 
     // remove the old jar
-    let remove_artifact_res = fs::remove_file(get_absolute_project_path() + "/build/artifact.jar");
+    let remove_artifact_res = fs::remove_file(p_ctx.absolute_paths.project.clone() + "/build/artifact.jar");
     match remove_artifact_res {
         Ok(_) => (),
         Err(e) => {
@@ -171,7 +175,7 @@ pub fn build_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) {
 
     // run the command
     let output = Command::new("sh")
-        .current_dir(get_absolute_project_path() + "/build")
+        .current_dir(p_ctx.absolute_paths.project.clone() + "/build")
         .arg("-c")
         .arg(cmd)
         .output()
@@ -189,12 +193,12 @@ pub fn run_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) {
     // build our packager command
     let cmd = format!(
         "java -jar {}",
-        project::get_absolute_project_path() + "/build/artifact.jar"
+        p_ctx.absolute_paths.project.clone() + "/build/artifact.jar"
     );
 
     // run the command
     let status = Command::new("sh")
-        .current_dir(get_absolute_project_path() + "/build")
+        .current_dir(p_ctx.absolute_paths.project.clone() + "/build")
         .arg("-c")
         .arg(cmd)
         .status();

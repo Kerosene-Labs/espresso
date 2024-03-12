@@ -1,4 +1,7 @@
-use std::{cell::Cell, env};
+use std::{
+    cell::{Cell, RefCell},
+    env,
+};
 
 use crate::backend::project::Config;
 
@@ -29,7 +32,7 @@ pub struct AbsoltuePaths {
 /// Contains absolute paths to critical resources within the currently loaded project. Determined at runtime.
 pub struct DynamicAbsolutePaths {
     /// Path to the base package. Should be {source}/package/path/here. The Main.java file will live here.
-    pub base_package: Cell<String>,
+    pub base_package: String,
 }
 
 /// Get if debug mode is active. You can enable debug mode by setting the `ESPRESSO_DEBUG`
@@ -63,14 +66,19 @@ pub fn get_debug_mode() -> bool {
 /// # Returns
 ///
 /// AbsolutePaths
-fn get_absolute_paths(debug_mode: &bool) -> AbsoltuePaths {
-    let cwd = env::current_dir()
+pub fn get_absolute_paths(debug_mode: &bool) -> AbsoltuePaths {
+    let mut cwd = env::current_dir()
         .expect("Failed to read the current working directory; are you in a shell?")
         .to_string_lossy()
         .into_owned();
+
+    if *debug_mode {
+        cwd += "/espresso_debug"
+    }
+
     AbsoltuePaths {
         project: cwd.clone(),
-        source: cwd.clone() + "/src",
+        source: cwd.clone() + "/src/java",
         config: cwd.clone() + "/espresso.toml",
     }
 }
@@ -85,20 +93,14 @@ fn get_absolute_paths(debug_mode: &bool) -> AbsoltuePaths {
 /// # Returns
 ///
 /// DynamicAbsolutePaths
-fn get_dynamic_absolute_paths(
-    ap: &AbsoltuePaths,
-    config: &Config,
-    debug_mode: &bool,
-) -> DynamicAbsolutePaths {
-    let base_package = Cell::new(
-        ap.source.clone()
-            + config
+pub fn get_dynamic_absolute_paths(ap: &AbsoltuePaths, config: &Config) -> DynamicAbsolutePaths {
+    let base_package = ap.source.clone()
+            + "/" + config
                 .project
                 .base_package
                 .clone()
                 .replace(".", "/")
-                .as_str(),
-    );
+                .as_str();
     DynamicAbsolutePaths { base_package }
 }
 
@@ -111,7 +113,7 @@ pub fn get_project_context() -> ProjectContext {
     let debug_mode = get_debug_mode();
     let absolute_paths = get_absolute_paths(&debug_mode);
     let config = get_config_from_fs(&absolute_paths);
-    let dynamic_absolute_paths = get_dynamic_absolute_paths(&absolute_paths, &config, &debug_mode);
+    let dynamic_absolute_paths = get_dynamic_absolute_paths(&absolute_paths, &config);
     ProjectContext {
         config,
         absolute_paths,
