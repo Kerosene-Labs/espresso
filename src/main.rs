@@ -13,7 +13,8 @@ fn main() {
         .about("Build Java apps without the fuss of antiquated build tools. Drink some Espresso.")
         .subcommand_required(true)
         .subcommand((&*frontend::command::BUILD_CMD).clone())
-        .subcommand((&*frontend::command::INIT_CMD).clone());
+        .subcommand((&*frontend::command::INIT_CMD).clone())
+        .subcommand((&*frontend::command::RUN_CMD).clone());
     
     let matches = cmd.get_matches();
     
@@ -22,10 +23,13 @@ fn main() {
     
     match matches.subcommand_name() {
         Some("build") => {
-            frontend::service::build();
+            frontend::service::build(None, None);
         }
         Some("init") => {
             frontend::service::init();
+        }
+        Some("run") => {
+            frontend::service::run(None, None);
         }
         _ => {
             print_err("Unknown subcommand")

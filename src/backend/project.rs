@@ -13,7 +13,6 @@ pub struct Config {
 pub struct Project {
     pub name: String,
     pub version: String,
-    pub artifact: String,
     pub base_package: String,
 }
 
@@ -164,7 +163,6 @@ pub fn initialize_config(name: String, base_package: String) {
         project: Project {
             name: process_input(name, "My Espresso Project".to_string()),
             version: "1.0.0".to_string(),
-            artifact: "artifact.jar".to_string(),
             base_package: process_input(base_package, "com.me.myespressoproject".to_string()),
         },
         toolchain: Toolchain {

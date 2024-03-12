@@ -1,8 +1,21 @@
-use std::{borrow::Cow, env, fmt::format, fs, io, path, process::{Command, ExitStatus}, vec};
+use crate::{
+    frontend::terminal::{print_debug, print_err, print_general},
+    util,
+};
+use std::{
+    borrow::Cow,
+    env,
+    fmt::format,
+    fs, io, path,
+    process::{Command, ExitStatus},
+    vec,
+};
 use walkdir::WalkDir;
-use crate::{frontend::terminal::{print_debug, print_err, print_general}, util};
 
-use super::{context::ProjectContext, project::{self, get_absolute_project_path, get_full_base_package_path, Project}};
+use super::{
+    context::ProjectContext,
+    project::{self, get_absolute_project_path, get_full_base_package_path, Project},
+};
 
 /**
  * Represents the context of the current Java toolchain
@@ -53,7 +66,7 @@ pub fn get_java_source_files(p_ctx: &ProjectContext) -> Result<Vec<String>, std:
     // begin sorting out java files
     let mut java_files: Vec<String> = vec![];
     for x in files.unwrap() {
-        if x.ends_with(".java"){
+        if x.ends_with(".java") {
             java_files.push(x);
         }
     }
@@ -65,10 +78,14 @@ pub fn get_java_source_files(p_ctx: &ProjectContext) -> Result<Vec<String>, std:
  */
 pub fn compile_java_file(path: &String, tc_ctx: &ToolchainContext) {
     Command::new("sh")
-    .arg("-c")
-    .arg(format!("{} {}", &tc_ctx.compiler_path.to_string_lossy(), path))
-    .output()
-    .expect("failed to execute java compiler");
+        .arg("-c")
+        .arg(format!(
+            "{} {}",
+            &tc_ctx.compiler_path.to_string_lossy(),
+            path
+        ))
+        .output()
+        .expect("failed to execute java compiler");
 }
 
 /**
@@ -77,9 +94,10 @@ pub fn compile_java_file(path: &String, tc_ctx: &ToolchainContext) {
 pub fn compile_project(java_files: Vec<String>, p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) {
     let compiler_path: &Cow<'_, str> = &tc_ctx.compiler_path.to_string_lossy();
 
-    for file in java_files{
+    for file in java_files {
         // build our compiler string
-        let cmd = format!("{} {} -d {}/build",
+        let cmd = format!(
+            "{} {} -d {}/build",
             &compiler_path,
             file,
             get_absolute_project_path()
@@ -89,14 +107,14 @@ pub fn compile_project(java_files: Vec<String>, p_ctx: &ProjectContext, tc_ctx: 
 
         // call the java compiler
         let output = Command::new("sh")
-        .arg("-c")
-        .arg(cmd)
-        .output()
-        .expect("failed to execute java compiler");
+            .arg("-c")
+            .arg(cmd)
+            .output()
+            .expect("failed to execute java compiler");
 
         if !output.status.success() {
+            println!("\n\n{}\n", String::from_utf8(output.stderr).unwrap());
             print_err("java compiler exited with error(s)");
-            println!("{:?}", output.stdout);
         }
     }
 }
@@ -105,14 +123,21 @@ pub fn compile_project(java_files: Vec<String>, p_ctx: &ProjectContext, tc_ctx: 
  * Get the manifest for the JAR
  */
 fn get_manifest(p_ctx: &ProjectContext) -> String {
-    format!("Main-Class: {}.Main\nManifest-Version: 1.0\n", p_ctx.config.project.base_package).to_string()
+    format!(
+        "Main-Class: {}.Main\nManifest-Version: 1.0\n",
+        p_ctx.config.project.base_package
+    )
+    .to_string()
 }
 
 /**
  * Write the manifest file
  */
-pub fn write_manifest(p_ctx: &ProjectContext) -> io::Result<()>{
-    std::fs::write(get_absolute_project_path() + "/build/MANIFEST.MF", get_manifest(p_ctx))
+pub fn write_manifest(p_ctx: &ProjectContext) -> io::Result<()> {
+    std::fs::write(
+        get_absolute_project_path() + "/build/MANIFEST.MF",
+        get_manifest(p_ctx),
+    )
 }
 
 /**
@@ -125,18 +150,58 @@ pub fn build_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) {
     // convert our base package (ex: com.xyz.whatever) to its filesystem equivalent (com/xyz/whatever)
     let relative_base_package_path = p_ctx.config.project.base_package.clone().replace(".", "/");
 
+    // remove the old jar
+    let remove_artifact_res = fs::remove_file(get_absolute_project_path() + "/build/artifact.jar");
+    match remove_artifact_res {
+        Ok(_) => (),
+        Err(_) => print_err("Unable to cleanup 'build/artifact.jar'"),
+    }
+
     // build our packager command
-    let cmd = format!("jar -c --file=artifact.jar --manifest=MANIFEST.MF {}", relative_base_package_path);
+    let cmd = format!(
+        "jar -c --file=artifact.jar --manifest=MANIFEST.MF {}",
+        relative_base_package_path
+    );
 
     // run the command
     let output = Command::new("sh")
-    .current_dir(get_absolute_project_path() + "/build")
-    .arg("-c")
-    .arg(cmd)
-    .output()
-    .expect("failed to run jar packager");
+        .current_dir(get_absolute_project_path() + "/build")
+        .arg("-c")
+        .arg(cmd)
+        .output()
+        .expect("failed to run jar packager");
     if !output.status.success() {
         println!("{}", String::from_utf8(output.stderr).unwrap());
         print_err("java packager (jar) exited with error(s)");
+    }
+}
+
+/**
+ * Run our JAR file
+ */
+pub fn run_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) {
+    // build our packager command
+    let cmd = format!(
+        "java -jar {}",
+        project::get_absolute_project_path() + "/build/artifact.jar"
+    );
+
+    // run the command
+    let status = Command::new("sh")
+        .current_dir(get_absolute_project_path() + "/build")
+        .arg("-c")
+        .arg(cmd)
+        .status();
+
+    match status {
+        Ok(v) => {
+            if !v.success() {
+                print_err("java virtual machine (java) exited with error(s)");
+
+            }
+        },
+        Err(e) => {
+            print_err("unable to execute java virtual machine command");
+        }
     }
 }

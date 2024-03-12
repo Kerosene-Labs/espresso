@@ -1,21 +1,55 @@
 use std::io;
 
 use crate::backend;
-use crate::backend::toolchain::compile_project;
+use crate::backend::context::{get_project_context, ProjectContext};
+use crate::backend::toolchain::{compile_project, get_toolchain_context, run_jar, ToolchainContext};
 use crate::frontend::terminal::{print_err, print_sameline};
 
 use super::terminal::print_general;
 
 /**
+ * Service function for the `run` command
+ */
+pub fn run(override_p_ctx: Option<ProjectContext>, override_tc_ctx: Option<ToolchainContext>) {
+    // handle an override project context
+    let mut p_ctx: ProjectContext;
+    match override_p_ctx {
+        Some(v) => p_ctx = v,
+        None => p_ctx = get_project_context()
+    }
+
+    // handle an override toolchain context
+    let mut tc_ctx: ToolchainContext;
+    match override_tc_ctx {
+        Some(v) => { tc_ctx = v; },
+        None => { tc_ctx = get_toolchain_context(&p_ctx); }
+    }
+
+    // build our jar
+    (p_ctx, tc_ctx) = build(Some(p_ctx), Some(tc_ctx));
+
+    // run it
+    print_general("Running 'artifact.jar'");
+    run_jar(&p_ctx, &tc_ctx)
+}
+
+/**
  * Service function for the `build` command
  */
-pub fn build() {
-    let p_ctx = backend::context::get_project_context();
-    print_general(format!("Building '{}'", &p_ctx.config.project.name).as_str());
-    
-    // get our toolchain context
-    let tc_ctx = backend::toolchain::get_toolchain_context(&p_ctx);
-    print_general(format!("Using '{}' as toolchain", tc_ctx.toolchain_path.to_string_lossy()).as_str());
+pub fn build(override_p_ctx: Option<ProjectContext>, override_tc_ctx: Option<ToolchainContext>) -> (ProjectContext, ToolchainContext) {
+    // handle an override project context
+    let p_ctx: ProjectContext;
+    match override_p_ctx {
+        Some(v) => p_ctx = v,
+        None => p_ctx = get_project_context()
+    }
+
+    // handle an override toolchain context
+    let tc_ctx: ToolchainContext;
+    match override_tc_ctx {
+        Some(v) => { tc_ctx = v; },
+        None => { tc_ctx = get_toolchain_context(&p_ctx); }
+    }
 
     // walk our src directory, find source files
     let java_files = backend::toolchain::get_java_source_files(&p_ctx).unwrap();
@@ -33,7 +67,10 @@ pub fn build() {
     print_general("Packaging");
     backend::toolchain::build_jar(&p_ctx, &tc_ctx);
     
-    print_general("  ^~~^   ...done!")
+    print_general("  ^~~^   ...done!");
+
+    // pass ownership back to the caller
+    (p_ctx, tc_ctx)
 
 }
 

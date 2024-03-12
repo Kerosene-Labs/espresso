@@ -13,3 +13,9 @@ pub static INIT_CMD: Lazy<Command> = Lazy::new(|| {
     .about("Initialize a new Espresso project")
     .alias("i")
 });
+
+pub static RUN_CMD: Lazy<Command> = Lazy::new(|| {
+    Command::new("run")
+    .about("Build & run your Java project")
+    .alias("i")
+});
