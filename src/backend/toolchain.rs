@@ -1,14 +1,9 @@
 use crate::{
-    frontend::terminal::{print_debug, print_err, print_general},
+    frontend::terminal::{print_debug, print_err},
     util,
 };
-use std::{
-    borrow::Cow,
-    env, fs, io, path,
-    process::{Command, ExitStatus},
-    vec,
-};
-use walkdir::WalkDir;
+use std::error;
+use std::{borrow::Cow, env, fs, io, path, process::Command, result, vec};
 
 use super::context::ProjectContext;
 
@@ -72,21 +67,6 @@ pub fn get_java_source_files(p_ctx: &ProjectContext) -> Result<Vec<String>, std:
 }
 
 /**
- * Compile a Java file using the defined toolchain
- */
-pub fn compile_java_file(path: &String, tc_ctx: &ToolchainContext) {
-    Command::new("sh")
-        .arg("-c")
-        .arg(format!(
-            "{} {}",
-            &tc_ctx.compiler_path.to_string_lossy(),
-            path
-        ))
-        .output()
-        .expect("failed to execute java compiler");
-}
-
-/**
  * Compile all Java files under a project
  */
 pub fn compile_project(java_files: Vec<String>, p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) {
@@ -96,10 +76,7 @@ pub fn compile_project(java_files: Vec<String>, p_ctx: &ProjectContext, tc_ctx: 
         // build our compiler string
         let cmd = format!(
             "{} {} -d {}/build -cp {}/build",
-            &compiler_path,
-            file,
-            &p_ctx.absolute_paths.project,
-            &p_ctx.absolute_paths.project
+            &compiler_path, file, &p_ctx.absolute_paths.project, &p_ctx.absolute_paths.project
         );
 
         print_debug(format!("Running '{}'", cmd).as_str());
@@ -141,8 +118,10 @@ pub fn write_manifest(p_ctx: &ProjectContext) -> io::Result<()> {
 
 /**
  * Build our JAR file
+ *
+ * TODO: ensure we're using the proper toolchain
  */
-pub fn build_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) {
+pub fn build_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) -> result::Result<(), Box<dyn error::Error>>{
     // write our manifest
     write_manifest(p_ctx).unwrap();
 
@@ -150,25 +129,12 @@ pub fn build_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) {
     let relative_base_package_path = p_ctx.config.project.base_package.clone().replace(".", "/");
 
     // remove the old jar
-    let remove_artifact_res = fs::remove_file(p_ctx.absolute_paths.project.clone() + "/build/artifact.jar");
-    match remove_artifact_res {
-        Ok(_) => (),
-        Err(e) => {
-            if e.raw_os_error().unwrap() != 2 {
-                print_err(
-                    format!(
-                        "Unable to cleanup 'artifact.jar': {}",
-                        e.to_string().as_str()
-                    )
-                    .as_str(),
-                );
-            }
-        }
-    }
+    fs::remove_file(p_ctx.absolute_paths.project.clone() + "/build/artifact.jar")?;
 
     // build our packager command
     let cmd = format!(
-        "jar -c --file=artifact.jar --manifest=MANIFEST.MF {}",
+        "{}/jar -c --file=artifact.jar --manifest=MANIFEST.MF {}",
+        tc_ctx.packager_path.to_string_lossy().clone(),
         relative_base_package_path
     );
 
@@ -177,39 +143,39 @@ pub fn build_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) {
         .current_dir(p_ctx.absolute_paths.project.clone() + "/build")
         .arg("-c")
         .arg(cmd)
-        .output()
-        .expect("failed to run jar packager");
+        .output()?;
+
+
     if !output.status.success() {
-        println!("{}", String::from_utf8(output.stderr).unwrap());
-        print_err("java packager (jar) exited with error(s)");
+        Err("ass".to_string())?;
     }
+
+    Ok(())
+
+    
 }
 
 /**
  * Run our JAR file
  */
-pub fn run_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) {
+pub fn run_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) -> result::Result<(), Box<dyn error::Error>>{
     // build our packager command
     let cmd = format!(
-        "java -jar {}",
+        "{}/java -jar {}",
+        tc_ctx.runtime_path.to_string_lossy().clone(),
         p_ctx.absolute_paths.project.clone() + "/build/artifact.jar"
     );
 
     // run the command
-    let status = Command::new("sh")
+    let output = Command::new("sh")
         .current_dir(p_ctx.absolute_paths.project.clone() + "/build")
         .arg("-c")
         .arg(cmd)
-        .status();
+        .output()?;
 
-    match status {
-        Ok(v) => {
-            if !v.success() {
-                print_err("java virtual machine (java) exited with error(s)");
-            }
-        }
-        Err(e) => {
-            print_err("unable to execute java virtual machine command");
-        }
+    if !output.status.success() {
+        Err("ass".to_string())?;
     }
+
+    Ok(())
 }

@@ -1,27 +1,25 @@
-use std::{error, io, result};
-
-use clap::Error;
-
-use crate::backend::{self, context, project};
 use crate::backend::context::{get_project_context, AbsoltuePaths, ProjectContext};
 use crate::backend::toolchain::{
     compile_project, get_toolchain_context, run_jar, ToolchainContext,
 };
+use crate::backend::{self, context, project};
 use crate::frontend::terminal::{print_err, print_sameline};
+use std::{error, io, result};
 
 use super::terminal::print_general;
 
 /**
  * Service function for the `run` command
  */
-pub fn run(override_p_ctx: Option<ProjectContext>, override_tc_ctx: Option<ToolchainContext>) -> result::Result<(), Box<dyn error::Error>> {
+pub fn run(
+    override_p_ctx: Option<ProjectContext>,
+    override_tc_ctx: Option<ToolchainContext>,
+) -> result::Result<(), Box<dyn error::Error>> {
     // handle an override project context
     let mut p_ctx: ProjectContext;
     match override_p_ctx {
         Some(v) => p_ctx = v,
-        None => {
-            p_ctx = get_project_context()?
-        },
+        None => p_ctx = get_project_context()?,
     }
 
     // handle an override toolchain context
@@ -47,16 +45,16 @@ pub fn run(override_p_ctx: Option<ProjectContext>, override_tc_ctx: Option<Toolc
 /**
  * Service function for the `build` command
  */
-pub fn build(override_p_ctx: Option<ProjectContext>, override_tc_ctx: Option<ToolchainContext>) -> result::Result<(ProjectContext, ToolchainContext), Box<dyn error::Error>> {
+pub fn build(
+    override_p_ctx: Option<ProjectContext>,
+    override_tc_ctx: Option<ToolchainContext>,
+) -> result::Result<(ProjectContext, ToolchainContext), Box<dyn error::Error>> {
     // handle an override project context
     let mut p_ctx: ProjectContext;
     match override_p_ctx {
         Some(v) => p_ctx = v,
-        None => {
-            p_ctx = get_project_context()?
-        },
+        None => p_ctx = get_project_context()?,
     }
-
 
     // handle an override toolchain context
     let tc_ctx: ToolchainContext;
@@ -104,14 +102,11 @@ pub fn init() {
             print_general("Failed to get absolute paths");
             return;
         }
-        Ok(x) => {
-            x
-        }
+        Ok(x) => x,
     };
 
-
     // check if the project exists
-    if project::does_exist(&ap){
+    if project::does_exist(&ap) {
         print_err(
             "Unable to initialize project: An Espresso project (or remnants of one) already exist",
         );
@@ -145,9 +140,7 @@ pub fn init() {
             print_general("Failed to get project context");
             return;
         }
-        Ok(x) => {
-            x
-        }
+        Ok(x) => x,
     };
 
     // initialize our source tree
