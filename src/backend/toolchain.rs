@@ -4,18 +4,13 @@ use crate::{
 };
 use std::{
     borrow::Cow,
-    env,
-    fmt::format,
-    fs, io, path,
+    env, fs, io, path,
     process::{Command, ExitStatus},
     vec,
 };
 use walkdir::WalkDir;
 
-use super::{
-    context::ProjectContext,
-    project::{self, get_absolute_project_path, get_full_base_package_path, Project},
-};
+use super::context::ProjectContext;
 
 /**
  * Represents the context of the current Java toolchain

@@ -1,6 +1,13 @@
-use std::{collections::HashMap, env, fs::{self, create_dir_all}, path::Path};
+use crate::util::pathutil;
+
+use super::context::{AbsoltuePaths, DynamicAbsolutePaths, ProjectContext};
 use serde::{Deserialize, Serialize};
-use super::context::ProjectContext;
+use std::{
+    collections::HashMap,
+    env,
+    fs::{self, create_dir_all},
+    path::Path,
+};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Config {
@@ -22,69 +29,21 @@ pub struct Toolchain {
 }
 
 /**
- * Get if ESPRESSO_DEBUG=1
- */
-pub fn get_debug_mode() -> bool {
-    match env::var("ESPRESSO_DEBUG") {
-        Ok(v) => {
-            if v == "1" {
-                return true
-            } else if v == "0" {
-                return false
-            } else {
-                return false
-            }
-        }
-        Err(_) => return false,
-    };
-}
-
-/**
- * Get the config path. Note, this value changes if ESPRESSO_DEBUG=1
- */
-pub fn get_config_path() -> String {
-    let debug_mode = get_debug_mode();
-    if debug_mode {
-        "espresso_debug/espresso.toml".to_string()
-    } else {
-        "espresso.toml".to_string()
-    }
-}
-
-pub fn get_absolute_project_path() -> String {
-    let debug_mode = get_debug_mode();
-    let current_dir = env::current_dir().unwrap().to_string_lossy().into_owned();
-    if debug_mode {
-        current_dir + "/espresso_debug"
-    } else {
-        current_dir
-    }
-}
-
-/**
- * Get the source path. Note, this value is prefixed with `espresso_debug` if ESPRESSO_DEBUG=1
- */
-pub fn get_source_path() -> String {
-    (get_absolute_project_path() + "/src/java").to_string()
-}
-
-/**
  * Ensure development directory exists
  */
-pub fn ensure_debug_directory_exists_if_debug(){
-    if !get_debug_mode() {
-        return;
-    }
-    if !Path::exists(Path::new("espresso_debug")) {
-        create_dir_all("espresso_debug").expect("Failed to ensure debug directory exists");
+pub fn ensure_debug_directory_exists_if_debug(p_ctx: &ProjectContext) {
+    if p_ctx.debug_mode {
+        if !Path::exists(Path::new("espresso_debug")) {
+            create_dir_all("espresso_debug").expect("Failed to ensure debug directory exists");
+        }
     }
 }
 
 /**
  * Load the project at the current working directory
  */
-pub fn get_config_from_fs() -> Config {
-    let contents = fs::read_to_string(get_config_path()).expect("Unable to read conig file");
+pub fn get_config_from_fs(ap: &AbsoltuePaths) -> Config {
+    let contents = fs::read_to_string(ap.config).expect("Unable to read conig file");
     toml::from_str(&contents).unwrap()
 }
 
@@ -92,9 +51,9 @@ pub fn get_config_from_fs() -> Config {
  * If a project exists. A project is deemed existing if it has a source directory
  * and a config file.
  */
-pub fn does_exist() -> bool {
-    let source_exists = does_source_exist();
-    let config_exists = does_config_exist();
+pub fn does_exist(ap: &AbsoltuePaths) -> bool {
+    let source_exists = pathutil::does_path_exist(&ap.source);
+    let config_exists = pathutil::does_path_exist(&ap.config);
 
     // Return false if either source or config does not exist
     if !source_exists || !config_exists {
@@ -106,31 +65,12 @@ pub fn does_exist() -> bool {
 }
 
 /**
- * If the source path (ex: src) exists
- */
-pub fn does_source_exist() -> bool {
-    Path::exists(Path::new(get_source_path().as_str()))
-}
-
-/**
- * Checks if the config exists
- */
-pub fn does_config_exist() -> bool {
-    Path::exists(Path::new(get_config_path().as_str()))
-}
-
-/**
- * Get the base package path. This value is the `location of src + base_package`
- */
-pub fn get_full_base_package_path(p_ctx: &ProjectContext) -> String{
-    format!("{}/{}", get_source_path(), p_ctx.config.project.base_package.replace(".", "/"))
-}
-
-/**
  * Initialize the source tree
  */
 pub fn initialize_source_tree(p_ctx: &ProjectContext) {
-    std::fs::create_dir_all(get_full_base_package_path(p_ctx)).expect("failed to create main package directories in file system");
+    let base_package_path = p_ctx.dynamic_absolute_paths.base_package.take();
+    std::fs::create_dir_all(base_package_path)
+        .expect("failed to create main package directories in file system");
 
     // create the Main.java file (textwrap doesn't work????)
     let base_java_content = r#"package ${BASE_PACKAGE};
@@ -140,9 +80,10 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Hello, world!");
     }
-}"#.replace("${BASE_PACKAGE}", &p_ctx.config.project.base_package);
-    
-    std::fs::write(get_full_base_package_path(p_ctx) + "/Main.java", base_java_content);
+}"#
+    .replace("${BASE_PACKAGE}", &p_ctx.config.project.base_package);
+
+    std::fs::write(base_package_path + "/Main.java", base_java_content);
 }
 
 fn process_input(x: String, default: String) -> String {
@@ -156,7 +97,7 @@ fn process_input(x: String, default: String) -> String {
 /**
  * Initialize a config
  */
-pub fn initialize_config(name: String, base_package: String) {
+pub fn initialize_config(name: String, base_package: String, ap: &AbsoltuePaths) {
     // process the name
     // populate a base_config struct
     let base_config = Config {
@@ -173,5 +114,5 @@ pub fn initialize_config(name: String, base_package: String) {
 
     // write it to a toml string, then write it to the config file
     let toml_string = toml::to_string(&base_config).expect("Failed to serialize struct");
-    fs::write(get_config_path(), toml_string).expect("Failed to write config file")
+    fs::write(ap.config, toml_string).expect("Failed to write config file")
 }
