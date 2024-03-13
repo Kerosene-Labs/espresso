@@ -1,0 +1,61 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "project": {
+            "type": "object",
+            "description": "Information about the project",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The name of the project",
+                    "examples": [
+                        "My Espresso Project"
+                    ]
+                },
+                "version": {
+                    "type": "string",
+                    "description": "The version of the Espresso project",
+                    "examples": [
+                        "1.0.0"
+                    ]
+                },
+                "base_package": {
+                    "type": "string",
+                    "description": "The base package of the project",
+                    "examples": [
+                        "com.me.myespressoproject"
+                    ]
+                }
+            },
+            "required": [
+                "name",
+                "version",
+                "base_package"
+            ]
+        },
+        "toolchain": {
+            "type": "object",
+            "description": "Toolchain (JDK) settings",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "Filesystem path to the desired Java installation"
+                }
+            },
+            "required": [
+                "path"
+            ]
+        },
+        "dependencies": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        }
+    },
+    "required": [
+        "project",
+        "toolchain"
+    ]
+}
