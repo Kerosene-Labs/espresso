@@ -2,7 +2,7 @@ use crate::backend::context::{AbsoltuePaths, ProjectContext};
 use crate::backend::toolchain::{
     compile_project, run_jar, ToolchainContext,
 };
-use crate::backend::{self, context, project};
+use crate::backend::{self, context};
 use crate::frontend::terminal::{print_err, print_sameline};
 use std::{error, io, result};
 
@@ -82,13 +82,6 @@ pub fn init() {
         Ok(x) => x,
     };
 
-    // check if the project exists
-    if project::does_exist(&ap) {
-        print_err(
-            "Unable to initialize project: An Espresso project (or remnants of one) already exist",
-        );
-    }
-
     print_general("Tell us a bit about your project!");
 
     // collect the name
@@ -105,36 +98,12 @@ pub fn init() {
         print_err("Failed to read user input for base package")
     }
 
-    // ensure our environment is setup
-    match backend::project::ensure_environment(&ap, &backend::context::get_debug_mode()) {
+    // initialize the project
+    let debug_mode = backend::context::get_debug_mode();
+    match backend::project::initialize(name, base_package, &ap, &debug_mode) {
         Ok(_) => (),
         Err(e) => {
-            print_err(format!("Failed to ensure environment: {}", {e}).as_str());
-        }
-    }
-
-    // initialize the config
-    match backend::project::initialize_config(name, base_package, &ap) {
-        Ok(_) => (),
-        Err(e) => {
-            print_err(format!("Failed to run initialize config: {}", {e}).as_str());
-        }
-    }
-
-    // get our project context
-    let p_ctx = match backend::context::get_project_context() {
-        Err(_) => {
-            print_general("Failed to get project context");
-            return;
-        }
-        Ok(x) => x,
-    };
-
-    // initialize our source tree
-    match backend::project::initialize_source_tree(&p_ctx) {
-        Ok(_) => (),
-        Err(e) => {
-            print_err(format!("Failed to initialize source tree: {}", {e}).as_str());
+            print_err(format!("Unable to initialize project: {}", e).as_str());
         }
     }
     print_general("Project created: Edit espresso.toml to check it out!");
