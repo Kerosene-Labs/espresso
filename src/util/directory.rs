@@ -14,8 +14,8 @@ pub fn read_files_recursively(path: String) -> Result<Vec<String>, Error> {
                 } else {
                     files.push(path);
                 }
-            },
-            Err(_) => unimplemented!("error case on reading files recursively")
+            }
+            Err(_) => unimplemented!("error case on reading files recursively"),
         }
     }
     return Ok(files);

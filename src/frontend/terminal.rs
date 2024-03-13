@@ -1,4 +1,7 @@
-use std::{io::{self, Write}, process::exit};
+use std::{
+    io::{self, Write},
+    process::exit,
+};
 
 use colored::*;
 
