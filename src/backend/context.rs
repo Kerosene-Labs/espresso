@@ -80,7 +80,7 @@ pub fn get_absolute_paths(debug_mode: &bool) -> io::Result<AbsoltuePaths> {
         source: cwd_string.clone() + "/src/java",
         config: cwd_string.clone() + "/espresso.toml",
         inner_workings: cwd_string.clone() + "/.espresso",
-        state_lockfile: cwd_string.clone() + "/.espresso/state.lock"
+        state_lockfile: cwd_string.clone() + "/.espresso/state.lock.toml"
     })
 }
 

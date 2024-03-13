@@ -1,12 +1,12 @@
-use std::{error, fs, result};
+use std::{collections::{self, HashMap}, error, fs, hash, result};
 
 use serde::{Deserialize, Serialize};
 
-use super::context::{AbsoltuePaths, DynamicAbsolutePaths};
+use super::context::AbsoltuePaths;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct StateLockFile {
-    pub dependencies: Vec<Dependency>,
+    pub dependencies: collections::HashMap<String, Dependency>,
 }
 
 /**
@@ -35,7 +35,7 @@ pub fn get_state_lockfile_from_fs(ap: &AbsoltuePaths) -> result::Result<StateLoc
 /// Initialize a new state lockfile
 pub fn initialize_state_lockfile(ap: &AbsoltuePaths) -> result::Result<(), Box<dyn error::Error>> {
     let base = StateLockFile {
-        dependencies: vec![]
+        dependencies: HashMap::new()
     };
 
     let toml_string = toml::to_string(&base)?;
