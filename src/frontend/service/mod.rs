@@ -38,7 +38,12 @@ pub fn run(
 
     // run it
     print_general("Running 'artifact.jar'");
-    run_jar(&p_ctx, &tc_ctx);
+    match run_jar(&p_ctx, &tc_ctx) {
+        Ok(_) => (),
+        Err(e) => {
+            print_err(format!("Failed to run 'artifact.jar': {}", {e}).as_str())
+        }
+    }
     Ok(())
 }
 
@@ -50,7 +55,7 @@ pub fn build(
     override_tc_ctx: Option<ToolchainContext>,
 ) -> result::Result<(ProjectContext, ToolchainContext), Box<dyn error::Error>> {
     // handle an override project context
-    let mut p_ctx: ProjectContext;
+    let p_ctx: ProjectContext;
     match override_p_ctx {
         Some(v) => p_ctx = v,
         None => p_ctx = get_project_context()?,
@@ -84,7 +89,12 @@ pub fn build(
 
     // build our jar
     print_general("Packaging");
-    backend::toolchain::build_jar(&p_ctx, &tc_ctx);
+    match backend::toolchain::build_jar(&p_ctx, &tc_ctx) {
+        Ok(_) => (),
+        Err(e) => {
+            print_err(format!("Failed to package 'artifact.jar': {}", {e}).as_str());
+        }
+    }
 
     print_general("  ^~~^   ...done!");
 
@@ -98,7 +108,7 @@ pub fn build(
 pub fn init() {
     // get absolute paths
     let ap: AbsoltuePaths = match context::get_absolute_paths(&context::get_debug_mode()) {
-        Err(e) => {
+        Err(_) => {
             print_general("Failed to get absolute paths");
             return;
         }
@@ -129,14 +139,24 @@ pub fn init() {
     }
 
     // ensure our environment is setup
-    backend::project::ensure_environment(&ap, &backend::context::get_debug_mode());
+    match backend::project::ensure_environment(&ap, &backend::context::get_debug_mode()) {
+        Ok(_) => (),
+        Err(e) => {
+            print_err(format!("Failed to ensure environment: {}", {e}).as_str());
+        }
+    }
 
     // initialize the config
-    backend::project::initialize_config(name, base_package, &ap);
+    match backend::project::initialize_config(name, base_package, &ap) {
+        Ok(_) => (),
+        Err(e) => {
+            print_err(format!("Failed to run initialize config: {}", {e}).as_str());
+        }
+    }
 
     // get our project context
     let p_ctx = match backend::context::get_project_context() {
-        Err(e) => {
+        Err(_) => {
             print_general("Failed to get project context");
             return;
         }
@@ -144,6 +164,11 @@ pub fn init() {
     };
 
     // initialize our source tree
-    backend::project::initialize_source_tree(&p_ctx);
+    match backend::project::initialize_source_tree(&p_ctx) {
+        Ok(_) => (),
+        Err(e) => {
+            print_err(format!("Failed to run 'artifact.jar': {}", {e}).as_str());
+        }
+    }
     print_general("Project created: Edit espresso.toml to check it out!");
 }
