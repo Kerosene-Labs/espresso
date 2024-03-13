@@ -24,6 +24,10 @@ pub struct AbsoltuePaths {
     pub source: String,
     /// Path to the config file within the currently loaded project.
     pub config: String,
+    /// Path to the directory that contains inner working files (ex: state_lockfile, dependency jars, etc)
+    pub inner_workings: String,
+    /// Path to the state lockfile within the currently loaded project.
+    pub state_lockfile: String,
 }
 
 /// Contains absolute paths to critical resources within the currently loaded project. Determined at runtime.
@@ -75,6 +79,8 @@ pub fn get_absolute_paths(debug_mode: &bool) -> io::Result<AbsoltuePaths> {
         project: cwd_string.clone(),
         source: cwd_string.clone() + "/src/java",
         config: cwd_string.clone() + "/espresso.toml",
+        inner_workings: cwd_string.clone() + "/.espresso",
+        state_lockfile: cwd_string.clone() + "/.espresso/state.lock"
     })
 }
 
