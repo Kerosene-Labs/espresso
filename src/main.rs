@@ -12,7 +12,7 @@ fn get_contexts() -> (ProjectContext, ToolchainContext) {
     let p_ctx = match get_project_context() {
         Ok(v) => v,
         Err(e) => {
-            print_err("Failed to get project context");
+            print_err("Failed to get project context (Are you in an Espresso project?)");
             panic!("{}", e);
         }
     };
