@@ -1,6 +1,6 @@
-use crate::backend::context::{get_project_context, AbsoltuePaths, ProjectContext};
+use crate::backend::context::{AbsoltuePaths, ProjectContext};
 use crate::backend::toolchain::{
-    compile_project, get_toolchain_context, run_jar, ToolchainContext,
+    compile_project, run_jar, ToolchainContext,
 };
 use crate::backend::{self, context, project};
 use crate::frontend::terminal::{print_err, print_sameline};
@@ -12,32 +12,14 @@ use super::terminal::print_general;
  * Service function for the `run` command
  */
 pub fn run(
-    override_p_ctx: Option<ProjectContext>,
-    override_tc_ctx: Option<ToolchainContext>,
+    mut p_ctx: ProjectContext,
+    mut tc_ctx: ToolchainContext,
 ) -> result::Result<(), Box<dyn error::Error>> {
-    // handle an override project context
-    let mut p_ctx: ProjectContext;
-    match override_p_ctx {
-        Some(v) => p_ctx = v,
-        None => p_ctx = get_project_context()?,
-    }
-
-    // handle an override toolchain context
-    let mut tc_ctx: ToolchainContext;
-    match override_tc_ctx {
-        Some(v) => {
-            tc_ctx = v;
-        }
-        None => {
-            tc_ctx = get_toolchain_context(&p_ctx);
-        }
-    }
-
     // build our jar
-    (p_ctx, tc_ctx) = build(Some(p_ctx), Some(tc_ctx))?;
+    (p_ctx, tc_ctx) = build(p_ctx, tc_ctx)?;
 
     // run it
-    print_general("Running 'artifact.jar'");
+    print_general("-- RUNNING ARTIFACT -----");
     match run_jar(&p_ctx, &tc_ctx) {
         Ok(_) => (),
         Err(e) => {
@@ -51,28 +33,11 @@ pub fn run(
  * Service function for the `build` command
  */
 pub fn build(
-    override_p_ctx: Option<ProjectContext>,
-    override_tc_ctx: Option<ToolchainContext>,
+    p_ctx: ProjectContext,
+    tc_ctx: ToolchainContext,
 ) -> result::Result<(ProjectContext, ToolchainContext), Box<dyn error::Error>> {
-    // handle an override project context
-    let p_ctx: ProjectContext;
-    match override_p_ctx {
-        Some(v) => p_ctx = v,
-        None => p_ctx = get_project_context()?,
-    }
-
-    // handle an override toolchain context
-    let tc_ctx: ToolchainContext;
-    match override_tc_ctx {
-        Some(v) => {
-            tc_ctx = v;
-        }
-        None => {
-            tc_ctx = get_toolchain_context(&p_ctx);
-        }
-    }
-
     // walk our src directory, find source files
+    print_general("-- DISCOVERING ----------");
     let java_files = backend::toolchain::get_java_source_files(&p_ctx).unwrap();
     print_general(
         format!(
@@ -82,21 +47,23 @@ pub fn build(
         )
         .as_str(),
     );
+    print_general("------------------------");
+
 
     // compile the project to class files
-    print_general("Compiling");
+    print_general("-- COMPILING ------------");
     compile_project(java_files, &p_ctx, &tc_ctx);
+    print_general("------------------------");
 
     // build our jar
-    print_general("Packaging");
+    print_general("-- PACKAGING ------------");
     match backend::toolchain::build_jar(&p_ctx, &tc_ctx) {
         Ok(_) => (),
         Err(e) => {
-            print_err(format!("Failed to package 'artifact.jar': {}", {e}).as_str());
+            print_err(format!("Failed to build jar: {}", {e}).as_str());
         }
     }
-
-    print_general("  ^~~^   ...done!");
+    print_general("------------------------");
 
     // pass ownership back to the caller
     Ok((p_ctx, tc_ctx))
@@ -167,7 +134,7 @@ pub fn init() {
     match backend::project::initialize_source_tree(&p_ctx) {
         Ok(_) => (),
         Err(e) => {
-            print_err(format!("Failed to run 'artifact.jar': {}", {e}).as_str());
+            print_err(format!("Failed to initialize source tree: {}", {e}).as_str());
         }
     }
     print_general("Project created: Edit espresso.toml to check it out!");

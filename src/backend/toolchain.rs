@@ -54,8 +54,6 @@ pub fn get_java_source_files(p_ctx: &ProjectContext) -> Result<Vec<String>, std:
 
     let files = util::directory::read_files_recursively(base_package);
 
-    print!("fuck: {}", p_ctx.dynamic_absolute_paths.base_package);
-
     // begin sorting out java files
     let mut java_files: Vec<String> = vec![];
     for x in files.unwrap() {
@@ -129,14 +127,15 @@ pub fn build_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) -> result::R
     let relative_base_package_path = p_ctx.config.project.base_package.clone().replace(".", "/");
 
     // remove the old jar
-    fs::remove_file(p_ctx.absolute_paths.project.clone() + "/build/artifact.jar")?;
+    let _ = fs::remove_file(p_ctx.absolute_paths.project.clone() + "/build/artifact.jar");
 
     // build our packager command
     let cmd = format!(
-        "{}/jar -c --file=artifact.jar --manifest=MANIFEST.MF {}",
+        "{} -c --file=artifact.jar --manifest=MANIFEST.MF {}",
         tc_ctx.packager_path.to_string_lossy().clone(),
         relative_base_package_path
     );
+    print_debug(format!("Running '{}'", cmd).as_str());
 
     // run the command
     let output = Command::new("sh")
@@ -144,14 +143,12 @@ pub fn build_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) -> result::R
         .arg("-c")
         .arg(cmd)
         .output()?;
-
-
     if !output.status.success() {
-        Err("ass".to_string())?;
+        let process_err = String::from_utf8(output.stderr)?;
+        Err(format!("Failed to package jar: Packager output was: {}", process_err))?
     }
 
     Ok(())
-
     
 }
 
@@ -161,20 +158,21 @@ pub fn build_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) -> result::R
 pub fn run_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) -> result::Result<(), Box<dyn error::Error>>{
     // build our packager command
     let cmd = format!(
-        "{}/java -jar {}",
+        "{} -jar {}",
         tc_ctx.runtime_path.to_string_lossy().clone(),
         p_ctx.absolute_paths.project.clone() + "/build/artifact.jar"
     );
 
     // run the command
-    let output = Command::new("sh")
+    let status = Command::new("sh")
         .current_dir(p_ctx.absolute_paths.project.clone() + "/build")
         .arg("-c")
         .arg(cmd)
-        .output()?;
+        .status()?;
 
-    if !output.status.success() {
-        Err("ass".to_string())?;
+    // dela with our output. We wa
+    if !status.success() {
+        Err(format!("Java process exited with non-0 status code"))?
     }
 
     Ok(())
