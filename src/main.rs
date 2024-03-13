@@ -1,8 +1,25 @@
+use backend::{
+    context::{get_project_context, ProjectContext},
+    toolchain::{get_toolchain_context, ToolchainContext},
+};
 use clap::Command;
 use frontend::terminal::print_err;
 mod backend;
 mod frontend;
 mod util;
+
+fn get_contexts() -> (ProjectContext, ToolchainContext) {
+    let p_ctx = match get_project_context() {
+        Ok(v) => v,
+        Err(e) => {
+            print_err("Failed to get project context");
+            panic!("{}", e);
+        }
+    };
+    let tc_ctx = get_toolchain_context(&p_ctx);
+
+    (p_ctx, tc_ctx)
+}
 
 fn main() {
     let cmd = Command::new("Espresso")
@@ -21,13 +38,21 @@ fn main() {
 
     match matches.subcommand_name() {
         Some("build") => {
-            frontend::service::build(None, None);
+            let (p_ctx, tc_ctx) = get_contexts();
+            match frontend::service::build(p_ctx, tc_ctx) {
+                Ok(_) => (),
+                Err(e) => print_err(format!("Error occurred running command: {}", e).as_str()),
+            }
         }
         Some("init") => {
             frontend::service::init();
         }
         Some("run") => {
-            frontend::service::run(None, None);
+            let (p_ctx, tc_ctx) = get_contexts();
+            match frontend::service::run(p_ctx, tc_ctx) {
+                Ok(_) => (),
+                Err(e) => print_err(format!("Error occurred running command: {}", e).as_str()),
+            }
         }
         _ => print_err("Unknown subcommand"),
     }

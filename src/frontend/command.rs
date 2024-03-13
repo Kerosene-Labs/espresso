@@ -16,5 +16,5 @@ pub static INIT_CMD: Lazy<Command> = Lazy::new(|| {
 pub static RUN_CMD: Lazy<Command> = Lazy::new(|| {
     Command::new("run")
         .about("Build & run your Java project")
-        .alias("i")
+        .alias("r")
 });

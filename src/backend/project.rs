@@ -2,7 +2,7 @@ use crate::util::pathutil;
 
 use super::context::{AbsoltuePaths, ProjectContext};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs, io};
+use std::{collections::HashMap, fs, io, error};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Config {
@@ -26,9 +26,10 @@ pub struct Toolchain {
 /**
  * Load the project at the current working directory
  */
-pub fn get_config_from_fs(ap: &AbsoltuePaths) -> Config {
-    let contents = fs::read_to_string(ap.config.clone()).expect("Unable to read conig file");
-    toml::from_str(&contents).unwrap()
+pub fn get_config_from_fs(ap: &AbsoltuePaths) -> Result<Config, Box<dyn error::Error>>{
+    let contents = fs::read_to_string(ap.config.clone())?;
+    let x: Config = toml::from_str(&contents)?;
+    Ok(x)
 }
 
 
