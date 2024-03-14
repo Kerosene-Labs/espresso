@@ -8,6 +8,10 @@ mod backend;
 mod frontend;
 mod util;
 
+/// Get runtime contexts required for command service functions
+/// 
+/// # Returns
+/// A tuple containing a `ProjectContext` and a `ToolchainContext`
 fn get_contexts() -> (ProjectContext, ToolchainContext) {
     let p_ctx = match get_project_context() {
         Ok(v) => v,
@@ -17,7 +21,6 @@ fn get_contexts() -> (ProjectContext, ToolchainContext) {
         }
     };
     let tc_ctx = get_toolchain_context(&p_ctx);
-
     (p_ctx, tc_ctx)
 }
 
