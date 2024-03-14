@@ -1,4 +1,5 @@
 use crate::backend::context::{AbsoltuePaths, ProjectContext};
+use crate::backend::project::Project;
 use crate::backend::toolchain::{
     compile_project, run_jar, ToolchainContext,
 };
@@ -107,4 +108,12 @@ pub fn init() {
         }
     }
     print_general("Project created: Edit espresso.toml to check it out!");
+}
+
+/// Service function for the `add` command.
+pub fn add(p_ctx: ProjectContext, tc_ctx: ToolchainContext) -> result::Result<(ProjectContext, ToolchainContext), Box<dyn error::Error>> {
+    //
+
+    // pass ownership back
+    Ok((p_ctx, tc_ctx))
 }

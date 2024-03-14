@@ -21,15 +21,17 @@ fn get_contexts() -> (ProjectContext, ToolchainContext) {
     (p_ctx, tc_ctx)
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let cmd = Command::new("Espresso")
         .bin_name("espresso")
         .version("1.0.0")
         .about("Build Java apps without the fuss of antiquated build tools. Drink some Espresso.")
         .subcommand_required(true)
-        .subcommand((&*frontend::command::BUILD_CMD).clone())
-        .subcommand((&*frontend::command::INIT_CMD).clone())
-        .subcommand((&*frontend::command::RUN_CMD).clone());
+        .subcommand((frontend::command::BUILD_CMD).clone())
+        .subcommand((frontend::command::INIT_CMD).clone())
+        .subcommand((frontend::command::RUN_CMD).clone())
+        .subcommand((frontend::command::ADD_CMD).clone());
 
     let matches = cmd.get_matches();
 
@@ -50,6 +52,13 @@ fn main() {
         Some("run") => {
             let (p_ctx, tc_ctx) = get_contexts();
             match frontend::service::run(p_ctx, tc_ctx) {
+                Ok(_) => (),
+                Err(e) => print_err(format!("Error occurred running command: {}", e).as_str()),
+            }
+        }
+        Some("add") => {
+            let (p_ctx, tc_ctx) = get_contexts();
+            match frontend::service::add(p_ctx, tc_ctx) {
                 Ok(_) => (),
                 Err(e) => print_err(format!("Error occurred running command: {}", e).as_str()),
             }

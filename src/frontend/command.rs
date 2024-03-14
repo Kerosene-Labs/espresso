@@ -18,3 +18,9 @@ pub static RUN_CMD: Lazy<Command> = Lazy::new(|| {
         .about("Build & run your Java project")
         .alias("r")
 });
+
+pub static ADD_CMD: Lazy<Command> = Lazy::new(|| {
+    Command::new("add")
+        .about("Add a dependency from Maven Repository to your project")
+        .alias("a")
+});

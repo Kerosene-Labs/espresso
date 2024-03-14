@@ -106,10 +106,23 @@ fn initialize_config(name: String, base_package: String, ap: &AbsoltuePaths) -> 
         dependencies: HashMap::new(),
     };
 
-    // write it to a toml string, then write it to the config file
-    let toml_string = toml::to_string(&base_config)?;
-    fs::write(ap.config.clone(), toml_string)?;
+    write_config(&base_config, ap);
 
+    Ok(())
+}
+
+/// Write a `Config` to the filesystem.
+/// 
+/// # Arguments
+/// * `config`: Reference to a `Config` struct, whos contents will be written to the filesystem.
+/// * `ap`: Reference to a `AbsolutePaths` struct.
+/// 
+/// # Returns
+/// Propagated `error:Error`(s)
+pub fn write_config(config: &Config, ap: &AbsoltuePaths) -> result::Result<(), Box<dyn error::Error>>{
+    // write it to a toml string, then write it to the config file
+    let toml_string = toml::to_string(&config)?;
+    fs::write(ap.config.clone(), toml_string)?;
     Ok(())
 }
 

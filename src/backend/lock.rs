@@ -1,4 +1,4 @@
-use std::{collections::{self, HashMap}, error, fs, hash, result};
+use std::{collections::{self, HashMap}, error, fs, result};
 
 use serde::{Deserialize, Serialize};
 
@@ -6,16 +6,17 @@ use super::context::AbsoltuePaths;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct StateLockFile {
-    pub dependencies: collections::HashMap<String, Dependency>,
+    pub dependencies: collections::HashMap<String, StateLockFileDependency>,
 }
 
-/**
- * Represents a dependency in '.espresso/dependencies'.
- */
+/// Represents a dependency in the state lock file
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Dependency {
+pub struct StateLockFileDependency {
+    /// The dependency name
     pub name: String,
+    /// The dependency filesystem name
     pub fs_name: String,
+    /// The dependency sha512 checksum
     pub checksum: String,
 }
 
