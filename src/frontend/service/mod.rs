@@ -1,8 +1,5 @@
 use crate::backend::context::{AbsoltuePaths, ProjectContext};
-use crate::backend::project::Project;
-use crate::backend::toolchain::{
-    compile_project, run_jar, ToolchainContext,
-};
+use crate::backend::toolchain::{compile_project, run_jar, ToolchainContext};
 use crate::backend::{self, context};
 use crate::frontend::terminal::{print_err, print_sameline};
 use std::{error, io, result};
@@ -23,9 +20,7 @@ pub fn run(
     print_general("-- RUNNING ARTIFACT -----");
     match run_jar(&p_ctx, &tc_ctx) {
         Ok(_) => (),
-        Err(e) => {
-            print_err(format!("Failed to run 'artifact.jar': {}", {e}).as_str())
-        }
+        Err(e) => print_err(format!("Failed to run 'artifact.jar': {}", { e }).as_str()),
     }
     Ok(())
 }
@@ -50,7 +45,6 @@ pub fn build(
     );
     print_general("------------------------");
 
-
     // compile the project to class files
     print_general("-- COMPILING ------------");
     compile_project(java_files, &p_ctx, &tc_ctx);
@@ -61,7 +55,7 @@ pub fn build(
     match backend::toolchain::build_jar(&p_ctx, &tc_ctx) {
         Ok(_) => (),
         Err(e) => {
-            print_err(format!("Failed to build jar: {}", {e}).as_str());
+            print_err(format!("Failed to build jar: {}", { e }).as_str());
         }
     }
     print_general("------------------------");
@@ -111,7 +105,10 @@ pub fn init() {
 }
 
 /// Service function for the `add` command.
-pub fn add(p_ctx: ProjectContext, tc_ctx: ToolchainContext) -> result::Result<(ProjectContext, ToolchainContext), Box<dyn error::Error>> {
+pub fn add(
+    p_ctx: ProjectContext,
+    tc_ctx: ToolchainContext,
+) -> result::Result<(ProjectContext, ToolchainContext), Box<dyn error::Error>> {
     //
 
     // pass ownership back
