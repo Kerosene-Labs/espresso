@@ -1,6 +1,6 @@
 use std::{collections, result};
 
-use clap::error;
+use std::error;
 
 use crate::backend::context::ProjectContext;
 
@@ -15,5 +15,5 @@ use crate::backend::context::ProjectContext;
 /// # Returns
 /// Propagated `error:Error`(s)
 pub fn add(path: &String, name: &String, version: &String, p_ctx: &ProjectContext) -> result::Result<(), Box<dyn error::Error>> {
-    
+    todo!()
 }
