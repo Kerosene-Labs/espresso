@@ -1,35 +1,8 @@
 use crate::util::pathutil;
 
-use super::{context::{get_project_context, AbsoltuePaths, ProjectContext}, lock};
+use super::{context::{get_project_context, AbsoltuePaths, ProjectContext}, lock, Config, Project, Toolchain};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, error, fs, io, result};
-
-/// Represents an `espresso.toml` file
-#[derive(Deserialize, Serialize, Debug)]
-pub struct Config {
-    pub project: Project,
-    pub toolchain: Toolchain,
-    // pub dependencies_maven: std::collections::HashMap<String, String>,
-    pub dependencies_fs: std::collections::HashMap<String, String>,
-}
-
-/// Represents information about the currently loaded Project
-#[derive(Deserialize, Serialize, Debug)]
-pub struct Project {
-    /// Name of the project (ex: `My Espresso Project`)
-    pub name: String,
-    /// Version of the project (ex: `1.0.0`)
-    pub version: String,
-    /// Java base package in dot notation (ex: `com.me.project`)
-    pub base_package: String,
-}
-
-/// Represents toolchain information
-#[derive(Deserialize, Serialize, Debug)]
-pub struct Toolchain {
-    /// Path to the JDK toolchain (ex: `${JAVA_HOME}`)
-    pub path: String,
-}
 
 /**
  * Load the project at the current working directory
@@ -111,10 +84,10 @@ fn initialize_config(name: String, base_package: String, ap: &AbsoltuePaths) -> 
         toolchain: Toolchain {
             path: "${JAVA_HOME}".to_string(),
         },
-        dependencies: HashMap::new(),
+        dependencies_fs: HashMap::new(),
     };
 
-    write_config(&base_config, ap);
+    write_config(&base_config, ap)?;
 
     Ok(())
 }

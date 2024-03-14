@@ -1,8 +1,6 @@
 use std::{env, error, io, result};
 
-use crate::backend::project::Config;
-
-use super::project::get_config_from_fs;
+use super::{project::get_config_from_fs, Config};
 
 /// Represents the context of the currently loaded project.
 pub struct ProjectContext {
