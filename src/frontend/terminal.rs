@@ -10,7 +10,12 @@ use colored::*;
  * This differs from panics as we want a nice, readable output for the user.
  */
 pub fn print_err(msg: &str) {
-    eprintln!("{} {}", "[X]".red().bold(), msg.white());
+    let lines = msg.split("\n");
+    for line in lines {
+        if !line.is_empty() {
+            eprintln!("{} {}", "[X]".red().bold(), line.white());
+        }
+    }
     exit(1);
 }
 
