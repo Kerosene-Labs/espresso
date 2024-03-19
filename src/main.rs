@@ -61,7 +61,7 @@ async fn main() {
         }
         Some("add") => {
             let (p_ctx, tc_ctx) = get_contexts();
-            match frontend::service::add(p_ctx, tc_ctx) {
+            match frontend::service::add(p_ctx, tc_ctx).await {
                 Ok(_) => (),
                 Err(e) => print_err(format!("Error occurred running command: {}", e).as_str()),
             }

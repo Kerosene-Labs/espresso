@@ -105,11 +105,23 @@ pub fn init() {
 }
 
 /// Service function for the `add` command.
-pub fn add(
+pub async fn add(
     p_ctx: ProjectContext,
     tc_ctx: ToolchainContext,
+    q: String
 ) -> result::Result<(ProjectContext, ToolchainContext), Box<dyn error::Error>> {
-    //
+    print_general(format!("Searching for '{}'", q).as_str());
+    let packages = backend::dependency::resolve::query(q).await?;    
+    for (elem, package) in packages.iter().enumerate() {
+        print_general(format!("{}) G:{} | A:{}", elem + 1, package.group_id, package.artifact_id).as_str());
+    }
+
+    // collect the package selection
+    let mut package_selection = String::new();
+    print_sameline(format!("Select a package (1-{}): ", packages.len()).as_str());
+    if let Err(_) = io::stdin().read_line(&mut package_selection) {
+        print_err("Failed to read user package selection")
+    }
 
     // pass ownership back
     Ok((p_ctx, tc_ctx))

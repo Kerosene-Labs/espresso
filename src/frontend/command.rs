@@ -1,4 +1,4 @@
-use clap::Command;
+use clap::{Arg, Command};
 use once_cell::sync::Lazy;
 
 pub static BUILD_CMD: Lazy<Command> = Lazy::new(|| {
@@ -23,4 +23,5 @@ pub static ADD_CMD: Lazy<Command> = Lazy::new(|| {
     Command::new("add")
         .about("Add a dependency from Maven Repository to your project")
         .alias("a")
+        .subcommand_value_name(value_name)
 });

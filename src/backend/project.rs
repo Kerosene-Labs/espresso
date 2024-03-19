@@ -1,7 +1,6 @@
 use crate::util::pathutil;
 
 use super::{context::{get_project_context, AbsoltuePaths, ProjectContext}, lock, Config, Project, Toolchain};
-use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, error, fs, io, result};
 
 /**
