@@ -4,6 +4,7 @@ use crate::backend::toolchain::{compile_project, run_jar, ToolchainContext};
 use crate::backend::{self, context};
 use crate::frontend::terminal::{print_err, print_sameline};
 use crate::util::error::EspressoError;
+use std::fmt::format;
 use std::{error, io, result};
 
 use super::terminal::print_general;
@@ -112,17 +113,18 @@ pub async fn add(
     tc_ctx: ToolchainContext,
     q: String
 ) -> result::Result<(ProjectContext, ToolchainContext), Box<dyn error::Error>> {
-    print_general(format!("Searching for '{}'", q).as_str());
-    let packages = backend::dependency::resolve::query(q).await?;    
-    for (elem, package) in packages.iter().enumerate() {
-        print_general(format!("{}) {}:{}", elem + 1, package.group_id, package.artifact_id).as_str());
-    }
+    let packages = backend::dependency::resolve::query(&q).await?;
 
     // collect the package selection if there was more than one returned package
     let selected_package: &Package;
     if packages.len() == 1 {
         selected_package = packages.get(0).expect("At least one package was simultaneously returned & not returned. Schrodinger's package..?");
     } else if packages.len() > 1 {
+        print_general(format!("Searching for '{}'", &q).as_str());
+        for (elem, package) in packages.iter().enumerate() {
+            print_general(format!("{}) {}:{}", elem + 1, package.group_id, package.artifact_id).as_str());
+        }
+    
         // get the selected package as a string
         let mut package_number_selection = String::new();
         print_sameline(format!("Select a package (1-{}): ", packages.len()).as_str());
@@ -154,6 +156,20 @@ pub async fn add(
         print_err("There were no packages matching that search term");
         panic!()
     }
+
+    // download the package
+    print_general(format!("Downloading '{}'", selected_package.artifact_id).as_str());
+    match backend::dependency::resolve::add(&p_ctx, selected_package).await {
+        Ok(()) => {},
+        Err(e) => {
+            print_err(format!("Failed to add package: {}", e).as_str());
+            panic!()
+        }
+    }
+    
+    // add the package to state.lock.toml
+    
+    print_general("Package added");
 
     // pass ownership back
     Ok((p_ctx, tc_ctx))

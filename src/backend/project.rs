@@ -120,8 +120,9 @@ fn ensure_environment(ap: &AbsoltuePaths, debug_mode: &bool) -> io::Result<()>{
         fs::create_dir(&ap.project)?
     }
 
-    // create the inner workings dir
+    // create the inner workings dirs
     std::fs::create_dir_all(&ap.inner_workings)?;
+    std::fs::create_dir_all(&ap.dependencies)?;
 
     Ok(())
 }
