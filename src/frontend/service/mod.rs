@@ -1,7 +1,9 @@
 use crate::backend::context::{AbsoltuePaths, ProjectContext};
+use crate::backend::dependency::resolve::Package;
 use crate::backend::toolchain::{compile_project, run_jar, ToolchainContext};
 use crate::backend::{self, context};
 use crate::frontend::terminal::{print_err, print_sameline};
+use crate::util::error::EspressoError;
 use std::{error, io, result};
 
 use super::terminal::print_general;
@@ -116,13 +118,41 @@ pub async fn add(
         print_general(format!("{}) G:{} | A:{}", elem + 1, package.group_id, package.artifact_id).as_str());
     }
 
-    // collect the package selection
-    let mut package_selection = String::new();
-    print_sameline(format!("Select a package (1-{}): ", packages.len()).as_str());
-    if let Err(_) = io::stdin().read_line(&mut package_selection) {
-        print_err("Failed to read user package selection")
+    // collect the package selection if there was more than one returned package
+    let selected_package: &Package;
+    if packages.len() == 1 {
+        selected_package = packages.get(0).expect("At least one package was simultaneously returned & not returned. Schrodinger's package..?");
+    } else if packages.len() > 1 {
+        // get the selected package as a string
+        let mut package_number_selection = String::new();
+        print_sameline(format!("Select a package (1-{}): ", packages.len()).as_str());
+        if let Err(_) = io::stdin().read_line(&mut package_number_selection) {
+            print_err("Failed to read user package selection")
+        }
+
+        // convert the input into a u64
+        let package_number_selection_int: u64 = match package_number_selection.parse::<u64>() {
+            Ok(v) => v,
+            Err(e) => {
+                print_err("Failed to parse user input as an unsigned integer.");
+                panic!("{}", e);
+            }
+        };
+
+        // set the selected package to its corresponding Package struct
+        selected_package = match packages.get((package_number_selection_int - 1) as usize) {
+            Some(v) => v,
+            None => {
+                print_err("Out of range");
+                panic!("Out of range");
+            }
+        };
+    } else {
+        print_err("There were no packages matching that search term");
+        panic!()
     }
 
+    println!("You selected: {}", selected_package.artifact_id);
     // pass ownership back
     Ok((p_ctx, tc_ctx))
 }

@@ -2,11 +2,39 @@ use backend::{
     context::{get_project_context, ProjectContext},
     toolchain::{get_toolchain_context, ToolchainContext},
 };
-use clap::Command;
+use clap::{Parser, Subcommand, command};
 use frontend::terminal::print_err;
 mod backend;
 mod frontend;
 mod util;
+
+#[derive(Parser, Debug)]
+#[command(name="espresso")]
+#[command(about="Build Java apps without the fuss of antiquated build tools. Drink some Espresso.")]
+struct EspressoCli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand, Debug)]
+enum Commands {
+    #[command(about="Build your project")]
+    Build {},
+
+    #[command(about="Initialize a new project")]
+    Init {},
+
+    #[command(about="Run your project")]
+    Run {},
+
+    #[command(arg_required_else_help = true)]
+    #[command(about="Add a package to your project")]
+    Add {
+        #[arg(required = true)]
+        search_term: String
+    },
+}
+
 
 /// Get runtime contexts required for command service functions
 /// 
@@ -26,46 +54,32 @@ fn get_contexts() -> (ProjectContext, ToolchainContext) {
 
 #[tokio::main]
 async fn main() {
-    let cmd = Command::new("Espresso")
-        .bin_name("espresso")
-        .version("1.0.0")
-        .about("Build Java apps without the fuss of antiquated build tools. Drink some Espresso.")
-        .subcommand_required(true)
-        .subcommand((frontend::command::BUILD_CMD).clone())
-        .subcommand((frontend::command::INIT_CMD).clone())
-        .subcommand((frontend::command::RUN_CMD).clone())
-        .subcommand((frontend::command::ADD_CMD).clone());
+    let args = EspressoCli::parse();
 
-    let matches = cmd.get_matches();
-
-    // ensure the espresso_debug directory exists if ESPRESSO_DEBUG=1
-    // ensure_debug_directory_exists_if_debug();
-
-    match matches.subcommand_name() {
-        Some("build") => {
+    match args.command {
+        Commands::Build {  } => {
             let (p_ctx, tc_ctx) = get_contexts();
             match frontend::service::build(p_ctx, tc_ctx) {
                 Ok(_) => (),
                 Err(e) => print_err(format!("Error occurred running command: {}", e).as_str()),
             }
-        }
-        Some("init") => {
-            frontend::service::init();
-        }
-        Some("run") => {
+        },
+        Commands::Init {  } => {
+            frontend::service::init()
+        },
+        Commands::Run {  } => {
             let (p_ctx, tc_ctx) = get_contexts();
             match frontend::service::run(p_ctx, tc_ctx) {
                 Ok(_) => (),
                 Err(e) => print_err(format!("Error occurred running command: {}", e).as_str()),
             }
         }
-        Some("add") => {
+        Commands::Add { search_term } => {
             let (p_ctx, tc_ctx) = get_contexts();
-            match frontend::service::add(p_ctx, tc_ctx).await {
+            match frontend::service::add(p_ctx, tc_ctx, search_term).await {
                 Ok(_) => (),
                 Err(e) => print_err(format!("Error occurred running command: {}", e).as_str()),
             }
         }
-        _ => print_err("Unknown subcommand"),
     }
 }
