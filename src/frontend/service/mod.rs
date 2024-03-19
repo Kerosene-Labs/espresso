@@ -115,7 +115,7 @@ pub async fn add(
     print_general(format!("Searching for '{}'", q).as_str());
     let packages = backend::dependency::resolve::query(q).await?;    
     for (elem, package) in packages.iter().enumerate() {
-        print_general(format!("{}) G:{} | A:{}", elem + 1, package.group_id, package.artifact_id).as_str());
+        print_general(format!("{}) {}:{}", elem + 1, package.group_id, package.artifact_id).as_str());
     }
 
     // collect the package selection if there was more than one returned package
@@ -130,11 +130,14 @@ pub async fn add(
             print_err("Failed to read user package selection")
         }
 
+        // remove any newlines
+        package_number_selection = package_number_selection.replace("\n", "");
+
         // convert the input into a u64
         let package_number_selection_int: u64 = match package_number_selection.parse::<u64>() {
             Ok(v) => v,
             Err(e) => {
-                print_err("Failed to parse user input as an unsigned integer.");
+                print_err(format!("Failed to parse user input as an unsigned integer: Input was '{}'", package_number_selection).as_str());
                 panic!("{}", e);
             }
         };
@@ -152,7 +155,6 @@ pub async fn add(
         panic!()
     }
 
-    println!("You selected: {}", selected_package.artifact_id);
     // pass ownership back
     Ok((p_ctx, tc_ctx))
 }
