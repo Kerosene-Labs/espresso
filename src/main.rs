@@ -1,5 +1,5 @@
 use backend::{
-    context::{get_project_context, ProjectContext},
+    context::{get_project_context, AbsoltuePaths, ProjectContext},
     toolchain::{get_toolchain_context, ToolchainContext},
 };
 use clap::{Parser, Subcommand, command};
@@ -28,11 +28,21 @@ enum Commands {
     Run {},
 
     #[command(arg_required_else_help = true)]
-    #[command(about="Add a package to your project")]
+    #[command(about="Add a package to your project from the Espresso Registry")]
     Add {
         #[arg(required = true)]
         search_term: String
     },
+
+    #[command(arg_required_else_help = true)]
+    #[command(about="Add a package to your project from the filesystem")]
+    AddFs {
+        #[arg(required = true, long)]
+        path: String,
+
+        #[arg(required = true, long)]
+        name: String,
+    }
 }
 
 
@@ -55,7 +65,7 @@ fn get_contexts() -> (ProjectContext, ToolchainContext) {
 #[tokio::main]
 async fn main() {
     let args = EspressoCli::parse();
-
+    
     match args.command {
         Commands::Build {  } => {
             let (p_ctx, tc_ctx) = get_contexts();
@@ -64,7 +74,7 @@ async fn main() {
                 Err(e) => print_err(format!("Error occurred running command: {}", e).as_str()),
             }
         },
-        Commands::Init {  } => {
+        Commands::Init { } => {
             frontend::service::init()
         },
         Commands::Run {  } => {
@@ -80,6 +90,9 @@ async fn main() {
                 Ok(_) => (),
                 Err(e) => print_err(format!("Error occurred running command: {}", e).as_str()),
             }
+        },
+        Commands::AddFs { path, name } => {
+            todo!()
         }
     }
 }

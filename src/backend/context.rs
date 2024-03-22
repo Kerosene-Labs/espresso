@@ -1,6 +1,6 @@
 use std::{env, error, io, result};
 
-use super::{project::get_config_from_fs, Config};
+use super::{lock::StateLockFile, project::get_config_from_fs, Config};
 
 /// Represents the context of the currently loaded project.
 pub struct ProjectContext {

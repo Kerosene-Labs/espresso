@@ -1,13 +1,13 @@
+use std::{error, io, result};
+
 use crate::backend::context::{AbsoltuePaths, ProjectContext};
 use crate::backend::dependency::resolve::Package;
 use crate::backend::toolchain::{compile_project, run_jar, ToolchainContext};
 use crate::backend::{self, context};
 use crate::frontend::terminal::{print_err, print_sameline};
-use crate::util::error::EspressoError;
-use std::fmt::format;
-use std::{error, io, result};
 
 use super::terminal::print_general;
+
 
 /**
  * Service function for the `run` command
@@ -113,6 +113,15 @@ pub async fn add(
     tc_ctx: ToolchainContext,
     q: String
 ) -> result::Result<(ProjectContext, ToolchainContext), Box<dyn error::Error>> {
+    // get absolute paths
+    let ap: AbsoltuePaths = match context::get_absolute_paths(&context::get_debug_mode()) {
+        Err(_) => {
+            print_err("Failed to get absolute paths");
+            panic!();
+        }
+        Ok(x) => x,
+    };
+    
     let packages = backend::dependency::resolve::query(&q).await?;
 
     // collect the package selection if there was more than one returned package
@@ -157,17 +166,15 @@ pub async fn add(
         panic!()
     }
 
-    // download the package
-    print_general(format!("Downloading '{}'", selected_package.artifact_id).as_str());
-    match backend::dependency::resolve::add(&p_ctx, selected_package).await {
+    // add the package
+    print_general(format!("Adding '{}'", selected_package.artifact_id).as_str());
+    match backend::dependency::add(&p_ctx, &ap, selected_package).await {
         Ok(()) => {},
         Err(e) => {
             print_err(format!("Failed to add package: {}", e).as_str());
             panic!()
         }
     }
-    
-    // add the package to state.lock.toml
     
     print_general("Package added");
 
