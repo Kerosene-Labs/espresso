@@ -109,7 +109,7 @@ pub fn init() {
 
 /// Service function for the `add` command.
 pub async fn add(
-    p_ctx: ProjectContext,
+    mut p_ctx: ProjectContext,
     tc_ctx: ToolchainContext,
     q: String
 ) -> result::Result<(ProjectContext, ToolchainContext), Box<dyn error::Error>> {
@@ -168,7 +168,7 @@ pub async fn add(
 
     // add the package
     print_general(format!("Adding '{}'", selected_package.artifact_id).as_str());
-    match backend::dependency::add(&p_ctx, &ap, selected_package).await {
+    match backend::dependency::add(&mut p_ctx, &ap, selected_package).await {
         Ok(()) => {},
         Err(e) => {
             print_err(format!("Failed to add package: {}", e).as_str());

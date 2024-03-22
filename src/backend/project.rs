@@ -83,6 +83,7 @@ fn initialize_config(name: String, base_package: String, ap: &AbsoltuePaths) -> 
         toolchain: Toolchain {
             path: "${JAVA_HOME}".to_string(),
         },
+        dependencies: HashMap::new(),
         dependencies_fs: HashMap::new(),
     };
 

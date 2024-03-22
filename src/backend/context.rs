@@ -1,11 +1,13 @@
 use std::{env, error, io, result};
 
-use super::{lock::StateLockFile, project::get_config_from_fs, Config};
+use super::{lock::{self, StateLockFile}, project::get_config_from_fs, Config};
 
 /// Represents the context of the currently loaded project.
 pub struct ProjectContext {
     /// Project config (espresso.toml)
     pub config: Config,
+    /// Lock File
+    pub state_lock_file: StateLockFile,
     /// Absolute paths (with suffixes known at compile time) that're relavent to this project (ex: path to src)
     pub absolute_paths: AbsoltuePaths,
     /// Absolute paths (with suffixes NOT known at compile time) that're relavent to this project (ex: path to base package)
@@ -115,10 +117,12 @@ pub fn get_project_context() -> result::Result<ProjectContext, Box<dyn error::Er
     let debug_mode = get_debug_mode();
     let absolute_paths = get_absolute_paths(&debug_mode)?;
     let config = get_config_from_fs(&absolute_paths)?;
+    let state_lock_file = lock::get_state_lockfile_from_fs(&absolute_paths)?;
     let dynamic_absolute_paths = get_dynamic_absolute_paths(&absolute_paths, &config);
     
     Ok(ProjectContext {
         config,
+        state_lock_file,
         absolute_paths,
         debug_mode,
         dynamic_absolute_paths,

@@ -10,16 +10,22 @@ use super::context::AbsoltuePaths;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct StateLockFile {
     /// The dependencies that should live in `.espresso/dependencies`. The key is the dependency name and the value is the dependency SHA512 checksum
-    pub dependencies: collections::HashMap<String, String>,
+    pub dependencies: collections::HashMap<String, StateLockFileDependency>,
 }
 
 /// Represents a dependency in the state lock file
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct StateLockFileDependency {
-    /// The dependency name
-    pub name: String,
     /// The dependency sha512 checksum
     pub checksum: String,
+    /// The dependency source
+    pub source: StateLockFileDependencySource
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum StateLockFileDependencySource {
+    EspressoRegistry,
+    FileSystem
 }
 
 /// Get the `.espresso/state.lock.toml` file from the filesystem.
@@ -48,19 +54,19 @@ pub fn initialize_state_lockfile(ap: &AbsoltuePaths) -> result::Result<(), Box<d
     Ok(())
 }
 
-/// Add a dependency to the state lock file
+/// Write the lock file
 ///
 /// # Arguments
-/// * `slf`: The `StateLockFile` to update
-/// * `name`: The name of the dependency
-/// * `sha512sum`: The SHA512 checksum of the dependency
+/// * `slf`: Reference to the `StateLockFile` to write
 ///
 /// # Returns
-/// The updated `StateLockFile` & propagated errors
-pub fn add_dependency(
-    slf: StateLockFile,
-    name: &String,
-    sha512sum: &String,
-) -> result::Result<StateLockFile, Box<dyn error::Error>> {
-    Ok(slf)
+/// Propagated errors
+pub fn write_lock_file(
+    slf: &StateLockFile,
+    ap: &AbsoltuePaths
+) -> result::Result<(), Box<dyn error::Error>> {
+    // write it to a toml string, then write it to the config file
+    let toml_string = toml::to_string(slf)?;
+    fs::write(ap.state_lockfile.clone(), toml_string)?;
+    Ok(())
 }

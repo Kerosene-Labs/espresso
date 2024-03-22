@@ -72,7 +72,7 @@ pub async fn query(q: &String) -> result::Result<Vec<Package>, Box<dyn error::Er
 }
 
 /// Download the latest version of a package
-pub async fn download(p_ctx: &ProjectContext, package: &Package) -> result::Result<(), Box<dyn error::Error>> {
+pub async fn download(p_ctx: &ProjectContext, package: &Package) -> result::Result<String, Box<dyn error::Error>> {
     // get the latest version of this project
     let version = match package.metadata.versions.get(0) {
         Some(v) => v,
@@ -90,5 +90,5 @@ pub async fn download(p_ctx: &ProjectContext, package: &Package) -> result::Resu
     // ensure integrity
     util::pathutil::ensure_integrity_sha512(&download_path, &version.sha512sum).await?;
     
-    Ok(())
+    Ok(download_path)
 }

@@ -11,9 +11,10 @@ pub mod dependency;
 pub struct Config {
     pub project: Project,
     pub toolchain: Toolchain,
-    // pub dependencies_maven: std::collections::HashMap<String, String>,
     /// Dependencies located on your filesystem
     pub dependencies_fs: std::collections::HashMap<String, String>,
+    /// Dependencies from the Espresso Registry
+    pub dependencies: std::collections::HashMap<String, String>
 }
 
 /// Represents information about the currently loaded Project
