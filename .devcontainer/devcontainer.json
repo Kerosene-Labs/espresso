@@ -1,0 +1,30 @@
+{
+	"name": "Rust",
+	"image": "mcr.microsoft.com/devcontainers/rust:dev-bookworm",
+	"containerEnv": {
+		"CARGO_BUILD_JOBS": "16",
+		"ESPRESSO_DEBUG": "1"
+	},
+	"postStartCommand": "rustup toolchain add stable",
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"files.exclude": {
+					"**/.git": true,
+					"**/.svn": true,
+					"**/.hg": true,
+					"**/CVS": true,
+					"**/.DS_Store": true,
+					"**/Thumbs.db": true,
+					".github": true,
+					".devcontainer": true,
+					".vscode": true,
+					"espresso_debug": true,
+					"imgs": true,
+					"target": true,
+					"Cargo.lock": true
+				}
+			}
+		}
+	}
+}
