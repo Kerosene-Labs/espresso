@@ -3,7 +3,8 @@
 	"image": "mcr.microsoft.com/devcontainers/rust:dev-bookworm",
 	"containerEnv": {
 		"CARGO_BUILD_JOBS": "16",
-		"ESPRESSO_DEBUG": "1"
+		"ESPRESSO_DEBUG": "1",
+		"JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64"
 	},
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/apt-get-packages": {

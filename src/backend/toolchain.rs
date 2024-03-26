@@ -1,19 +1,21 @@
 use crate::{
-    frontend::terminal::{print_debug, print_err},
-    util,
+    frontend::terminal::print_err,
+    util::{self, error::EspressoError},
 };
-use std::error;
+use std::{error, fmt::format};
 use std::{borrow::Cow, env, fs, io, path, process::Command, result, vec};
 
 use super::context::ProjectContext;
 
-/**
- * Represents the context of the current Java toolchain
- */
+/// Represents the current Java toolchain
 pub struct ToolchainContext {
+    /// Path to `javac`
     pub compiler_path: path::PathBuf,
+    /// Path to `java`
     pub runtime_path: path::PathBuf,
+    /// Path to `jar`
     pub packager_path: path::PathBuf,
+    /// Path to the JDK directory
     pub toolchain_path: path::PathBuf,
 }
 
@@ -77,8 +79,6 @@ pub fn compile_project(java_files: Vec<String>, p_ctx: &ProjectContext, tc_ctx: 
             &compiler_path, file, &p_ctx.absolute_paths.project, &p_ctx.absolute_paths.project
         );
 
-        print_debug(format!("Running '{}'", cmd).as_str());
-
         // call the java compiler
         let output = Command::new("sh")
             .arg("-c")
@@ -119,7 +119,10 @@ pub fn write_manifest(p_ctx: &ProjectContext) -> io::Result<()> {
  *
  * TODO: ensure we're using the proper toolchain
  */
-pub fn build_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) -> result::Result<(), Box<dyn error::Error>>{
+pub fn build_jar(
+    p_ctx: &ProjectContext,
+    tc_ctx: &ToolchainContext,
+) -> result::Result<(), Box<dyn error::Error>> {
     // write our manifest
     write_manifest(p_ctx).unwrap();
 
@@ -135,7 +138,6 @@ pub fn build_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) -> result::R
         tc_ctx.packager_path.to_string_lossy().clone(),
         relative_base_package_path
     );
-    print_debug(format!("Running '{}'", cmd).as_str());
 
     // run the command
     let output = Command::new("sh")
@@ -145,17 +147,22 @@ pub fn build_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) -> result::R
         .output()?;
     if !output.status.success() {
         let process_err = String::from_utf8(output.stderr)?;
-        Err(format!("Failed to package jar: Packager output was: {}", process_err))?
+        Err(format!(
+            "Failed to package jar: Packager output was: {}",
+            process_err
+        ))?
     }
 
     Ok(())
-    
 }
 
 /**
  * Run our JAR file
  */
-pub fn run_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) -> result::Result<(), Box<dyn error::Error>>{
+pub fn run_jar(
+    p_ctx: &ProjectContext,
+    tc_ctx: &ToolchainContext,
+) -> result::Result<(), Box<dyn error::Error>> {
     // build our packager command
     let cmd = format!(
         "{} -jar {}",
@@ -169,11 +176,55 @@ pub fn run_jar(p_ctx: &ProjectContext, tc_ctx: &ToolchainContext) -> result::Res
         .arg("-c")
         .arg(cmd)
         .status()?;
-
-    // dela with our output. We wa
     if !status.success() {
         Err(format!("Java process exited with non-0 status code"))?
     }
 
+    Ok(())
+}
+
+/// Extract a .jar
+///
+/// # Arguments
+/// * `p_ctx`: Reference to a `ProjectContext` struct
+/// * `tc_ctx`: Reference to a `ToolchainContext` struct
+///
+/// # Returns
+/// `Ok` is a `String` containing the absolute path of the extracted .jar. `Err` is propagated errors.
+pub fn extract_jar(
+    p_ctx: &ProjectContext,
+    tc_ctx: &ToolchainContext,
+    jar_name: &String,
+
+) -> result::Result<(), Box<dyn error::Error>> {
+    // get a jar name without the suffix
+    let output_dir_name = match jar_name.strip_suffix(".jar") {
+        Some(v) => v,
+        None => {
+            return Err(EspressoError::nib("Invalid jar name"))?;
+        }
+    };
+    let absolute_output_dir = p_ctx.absolute_paths.dependencies_extracted.clone() + "/" + output_dir_name;
+
+    // create the extracted dependency directory
+    fs::create_dir_all(&absolute_output_dir)?;
+
+    // create our command
+    let cmd = format!(
+        "{} -x --file {}",
+        tc_ctx.packager_path.to_string_lossy(),
+        p_ctx.absolute_paths.dependencies.clone() + "/" + jar_name,
+    );
+
+    // run the command
+    let status = Command::new("sh")
+        .current_dir(& absolute_output_dir)
+        .arg("-c")
+        .arg(cmd)
+        .status()?;
+    if !status.success() {
+        Err(format!("Packager process exited with non-0 status code"))?;
+    }
+    
     Ok(())
 }

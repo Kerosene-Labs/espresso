@@ -2,7 +2,7 @@ use std::{error, io, result};
 
 use crate::backend::context::{AbsoltuePaths, ProjectContext};
 use crate::backend::dependency::resolve::Package;
-use crate::backend::toolchain::{compile_project, run_jar, ToolchainContext};
+use crate::backend::toolchain::{self, compile_project, run_jar, ToolchainContext};
 use crate::backend::{self, context};
 use crate::frontend::terminal::{print_err, print_sameline};
 
@@ -20,11 +20,12 @@ pub fn run(
     (p_ctx, tc_ctx) = build(p_ctx, tc_ctx)?;
 
     // run it
-    print_general("-- RUNNING ARTIFACT -----");
+    print_general("-- RUNNING ARTIFACT ----");
     match run_jar(&p_ctx, &tc_ctx) {
         Ok(_) => (),
         Err(e) => print_err(format!("Failed to run 'artifact.jar': {}", { e }).as_str()),
     }
+    print_general("------------------------");
     Ok(())
 }
 
@@ -35,8 +36,16 @@ pub fn build(
     p_ctx: ProjectContext,
     tc_ctx: ToolchainContext,
 ) -> result::Result<(ProjectContext, ToolchainContext), Box<dyn error::Error>> {
+    // extract dependencies TODO cleanup
+    print_general("-- EXTRACTING DEPENDENCIES");
+    for (name, dep) in p_ctx.state_lock_file.dependencies.iter() {
+        print_general(format!("Extracting '{}'", name).as_str());
+        backend::dependency::uberjar::extract(&p_ctx, &tc_ctx, dep)?;
+    }
+    print_general("------------------------");
+
     // walk our src directory, find source files
-    print_general("-- DISCOVERING ----------");
+    print_general("-- DISCOVERING");
     let java_files = backend::toolchain::get_java_source_files(&p_ctx).unwrap();
     print_general(
         format!(
@@ -49,12 +58,12 @@ pub fn build(
     print_general("------------------------");
 
     // compile the project to class files
-    print_general("-- COMPILING ------------");
+    print_general("-- COMPILING");
     compile_project(java_files, &p_ctx, &tc_ctx);
     print_general("------------------------");
 
     // build our jar
-    print_general("-- PACKAGING ------------");
+    print_general("-- PACKAGING");
     match backend::toolchain::build_jar(&p_ctx, &tc_ctx) {
         Ok(_) => (),
         Err(e) => {

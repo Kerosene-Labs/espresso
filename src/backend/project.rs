@@ -124,6 +124,7 @@ fn ensure_environment(ap: &AbsoltuePaths, debug_mode: &bool) -> io::Result<()>{
     // create the inner workings dirs
     std::fs::create_dir_all(&ap.inner_workings)?;
     std::fs::create_dir_all(&ap.dependencies)?;
+    std::fs::create_dir_all(&ap.dependencies_extracted)?;
 
     Ok(())
 }

@@ -13,21 +13,21 @@ pub fn print_err(msg: &str) {
     let lines = msg.split("\n");
     for line in lines {
         if !line.is_empty() {
-            eprintln!("{} {}", "[X]".red().bold(), line.white());
+            eprintln!("{} {}", "error: ".red().bold(), line.bright_red());
         }
     }
     exit(1);
 }
 
 pub fn print_general(msg: &str) {
-    println!("{} {}", "[.]".bright_white().bold(), msg.white())
+    println!("{} {}", "info: ".bright_white().bold(), msg.white())
 }
 
 pub fn print_debug(msg: &str) {
-    println!("{} {}", "[D]".green().bold(), msg.white())
+    println!("{} {}", "debug: ".green().bold(), msg.white())
 }
 
 pub fn print_sameline(msg: &str) {
-    print!("{} {}", "[?]".bold().yellow(), msg.white());
+    print!("{} {}", "input: ".bold().yellow(), msg.white());
     io::stdout().flush().unwrap();
 }
