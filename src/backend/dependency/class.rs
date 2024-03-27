@@ -1,4 +1,4 @@
-use std::{error, result};
+use std::{error, result, vec};
 
 use crate::{backend::{context::ProjectContext, lock::StateLockFileDependency}, util};
 
@@ -10,6 +10,8 @@ pub struct ExtractedClass {
     pub containing_directory_relative_path: String,
     // The class name (minus extension)
     pub name: String,
+    // The absolute path to the class file, pre merge.
+    pub path: String,
 }
 
 /// Get extracted classes for a particular dependency
@@ -31,8 +33,20 @@ pub fn get(p_ctx: &ProjectContext, dependency: &StateLockFileDependency) -> resu
             class_files.push(file);
         }
     }
-
     
+    // build the extracted class structs
+    let extracted_classes: Vec<ExtractedClass> = vec![];
+    for file in class_files {
+        let absolute_path: Vec<&str> = file.split("/").collect();
 
-    Ok(())
+        let containing_directory_absolute_path = "";
+
+        extracted_classes.push(
+            ExtractedClass {
+                containing_directory_absolute_path
+            }
+        )
+    }
+
+    Ok(extracted_classes)
 }

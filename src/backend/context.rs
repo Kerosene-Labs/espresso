@@ -1,4 +1,4 @@
-use std::{env, error, io, result};
+use std::{env, error, io, path, result};
 
 use super::{lock::{self, StateLockFile}, project::get_config_from_fs, Config};
 
@@ -19,27 +19,27 @@ pub struct ProjectContext {
 /// Contains absolute paths to critical resources within the currently loaded project.
 pub struct AbsoltuePaths {
     /// Path to the currently loaded projects directory. Should be the current working directory.
-    pub project: String,
+    pub project: path::PathBuf,
     /// Path to the src/ directory within the currently loaded project.
-    pub source: String,
+    pub source: path::PathBuf,
     /// Path to the config file within the currently loaded project.
-    pub config: String,
+    pub config: path::PathBuf,
     /// Path to the directory that contains inner working files (ex: state_lockfile, dependency jars, etc)
-    pub inner_workings: String,
+    pub inner_workings: path::PathBuf,
     /// Path to the inner workings directory containing downloaded dependencies.
-    pub dependencies: String,
+    pub dependencies: path::PathBuf,
     /// Path to the inner workings state lockfile within the currently loaded project.
-    pub state_lockfile: String,
+    pub state_lockfile: path::PathBuf,
     /// Path to the inner workings directory containing extracted dependencies.
-    pub dependencies_extracted: String,
+    pub dependencies_extracted: path::PathBuf,
     /// Path to the directory containing built .class files and potentially an artifact.jar
-    pub build: String,
+    pub build: path::PathBuf,
 }
 
 /// Contains absolute paths to critical resources within the currently loaded project. Determined at runtime.
 pub struct DynamicAbsolutePaths {
     /// Path to the base package. Should be {source}/package/path/here. The Main.java file will live here.
-    pub base_package: String,
+    pub base_package: path::PathBuf,
 }
 
 /// Get if debug mode is active. You can enable debug mode by setting the `ESPRESSO_DEBUG`
@@ -82,14 +82,14 @@ pub fn get_absolute_paths(debug_mode: &bool) -> io::Result<AbsoltuePaths> {
     }
 
     Ok(AbsoltuePaths {
-        project: cwd_string.clone(),
-        source: cwd_string.clone() + "/src/java",
-        config: cwd_string.clone() + "/espresso.toml",
-        inner_workings: cwd_string.clone() + "/.espresso",
-        dependencies: cwd_string.clone() + "/.espresso/dependencies",
-        state_lockfile: cwd_string.clone() + "/.espresso/state.lock.toml",
-        dependencies_extracted: cwd_string.clone() + "/.espresso/dependencies_extracted",
-        build: cwd_string.clone() + "/build"
+        project: cwd_string.clone().into(),
+        source: (cwd_string.clone() + "/src/java").into(),
+        config: (cwd_string.clone() + "/espresso.toml").into(),
+        inner_workings: (cwd_string.clone() + "/.espresso").into(),
+        dependencies: (cwd_string.clone() + "/.espresso/dependencies").into(),
+        state_lockfile: (cwd_string.clone() + "/.espresso/state.lock.toml").into(),
+        dependencies_extracted: (cwd_string.clone() + "/.espresso/dependencies_extracted").into(),
+        build: (cwd_string.clone() + "/build").into()
     })
 }
 
