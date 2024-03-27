@@ -12,6 +12,8 @@ use super::lock::StateLockFileDependencySource;
 use super::project;
 pub mod resolve;
 pub mod uberjar;
+pub mod manifest;
+pub mod class;
 
 /// Download the latest version of the package, adding it to the state.lock.toml & cargoespresso.toml file(s)
 ///

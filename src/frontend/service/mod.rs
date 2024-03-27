@@ -8,7 +8,6 @@ use crate::frontend::terminal::{print_err, print_sameline};
 
 use super::terminal::print_general;
 
-
 /**
  * Service function for the `run` command
  */
@@ -36,11 +35,19 @@ pub fn build(
     p_ctx: ProjectContext,
     tc_ctx: ToolchainContext,
 ) -> result::Result<(ProjectContext, ToolchainContext), Box<dyn error::Error>> {
-    // extract dependencies TODO cleanup
+    // extract dependencies
     print_general("-- EXTRACTING DEPENDENCIES");
     for (name, dep) in p_ctx.state_lock_file.dependencies.iter() {
         print_general(format!("Extracting '{}'", name).as_str());
         backend::dependency::uberjar::extract(&p_ctx, &tc_ctx, dep)?;
+    }
+    print_general("------------------------");
+
+    // merge the dependencies
+    print_general("-- MERGING DEPENDENCIES");
+    for (name, dep) in p_ctx.state_lock_file.dependencies.iter() {
+        print_general(format!("Merging '{}' into classpath", name).as_str());
+        backend::dependency::uberjar::copy_classes(&p_ctx, dep)?;
     }
     print_general("------------------------");
 
@@ -120,7 +127,7 @@ pub fn init() {
 pub async fn add(
     mut p_ctx: ProjectContext,
     tc_ctx: ToolchainContext,
-    q: String
+    q: String,
 ) -> result::Result<(ProjectContext, ToolchainContext), Box<dyn error::Error>> {
     // get absolute paths
     let ap: AbsoltuePaths = match context::get_absolute_paths(&context::get_debug_mode()) {
@@ -130,7 +137,7 @@ pub async fn add(
         }
         Ok(x) => x,
     };
-    
+
     let packages = backend::dependency::resolve::query(&q).await?;
 
     // collect the package selection if there was more than one returned package
@@ -140,9 +147,11 @@ pub async fn add(
     } else if packages.len() > 1 {
         print_general(format!("Searching for '{}'", &q).as_str());
         for (elem, package) in packages.iter().enumerate() {
-            print_general(format!("{}) {}:{}", elem + 1, package.group_id, package.artifact_id).as_str());
+            print_general(
+                format!("{}) {}:{}", elem + 1, package.group_id, package.artifact_id).as_str(),
+            );
         }
-    
+
         // get the selected package as a string
         let mut package_number_selection = String::new();
         print_sameline(format!("Select a package (1-{}): ", packages.len()).as_str());
@@ -157,7 +166,13 @@ pub async fn add(
         let package_number_selection_int: u64 = match package_number_selection.parse::<u64>() {
             Ok(v) => v,
             Err(e) => {
-                print_err(format!("Failed to parse user input as an unsigned integer: Input was '{}'", package_number_selection).as_str());
+                print_err(
+                    format!(
+                        "Failed to parse user input as an unsigned integer: Input was '{}'",
+                        package_number_selection
+                    )
+                    .as_str(),
+                );
                 panic!("{}", e);
             }
         };
@@ -178,13 +193,13 @@ pub async fn add(
     // add the package
     print_general(format!("Adding '{}'", selected_package.artifact_id).as_str());
     match backend::dependency::add(&mut p_ctx, &ap, selected_package).await {
-        Ok(()) => {},
+        Ok(()) => {}
         Err(e) => {
             print_err(format!("Failed to add package: {}", e).as_str());
             panic!()
         }
     }
-    
+
     print_general("Package added");
 
     // pass ownership back

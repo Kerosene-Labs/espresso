@@ -1,6 +1,6 @@
-use std::{error, result};
+use std::{error, fs, result};
 
-use crate::backend::{context::ProjectContext, lock::StateLockFileDependency, toolchain::{self, ToolchainContext}};
+use crate::{backend::{context::ProjectContext, dependency::manifest, lock::StateLockFileDependency, toolchain::{self, ToolchainContext}}, util};
 
 /// Helper function to extract the specified dependency
 ///
@@ -19,7 +19,7 @@ pub fn extract(
     toolchain::extract_jar(p_ctx, tc_ctx, &(dependency.checksum.clone() + ".jar"))
 }
 
-/// Sync a dependency into the projcets class
+/// Copy classes from 
 /// 
 /// # Arguments
 /// * `p_ctx`: Reference to a `ProjectContext` struct
@@ -28,10 +28,18 @@ pub fn extract(
 ///
 /// # Returns
 /// Propagated errors
-pub fn sync(
+pub fn copy_classes(
     p_ctx: &ProjectContext,
-    tc_ctx: &ToolchainContext,
     dependency: &StateLockFileDependency
 ) -> result::Result<(), Box<dyn error::Error>>{
+    let source = p_ctx.absolute_paths.dependencies_extracted.clone() + "/" + dependency.checksum.as_str();
+
+    // get our directory tree
+    let dir_tree = util::directory::walk_dir_tree(&source)?;
+
+    let manifest = manifest::parse(&(source + "/META-INF/MANIFEST.MF"));
+    
+    // copy
+    // println!("{:?}", class_files);
     Ok(())
 }

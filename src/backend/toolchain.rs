@@ -79,6 +79,7 @@ pub fn compile_project(java_files: Vec<String>, p_ctx: &ProjectContext, tc_ctx: 
             &compiler_path, file, &p_ctx.absolute_paths.project, &p_ctx.absolute_paths.project
         );
 
+        println!("{}", cmd);
         // call the java compiler
         let output = Command::new("sh")
             .arg("-c")
