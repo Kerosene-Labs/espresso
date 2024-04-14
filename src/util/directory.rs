@@ -1,4 +1,4 @@
-use std::{error, fs, io::Error, result, vec};
+use std::{error, fs, io::Error, path, result, vec};
 
 /// Get a list of all files within a directory
 ///
@@ -33,12 +33,12 @@ pub fn read_files_recursively(path: String) -> Result<Vec<String>, Error> {
 ///
 /// # Returns
 /// Propagated errors, a `Vec<String>` containing absolute paths to all the dirs.
-pub fn walk_dir_tree(path: &String) -> result::Result<Vec<String>, Box<dyn error::Error>> {
-    let mut dirs: Vec<String> = vec![];
+pub fn walk_dir_tree(path: &path::PathBuf) -> result::Result<Vec<path::PathBuf>, Box<dyn error::Error>> {
+    let mut dirs: Vec<path::PathBuf> = vec![];
     for i in fs::read_dir(path)? {
         let entry = i?;
         if entry.file_type()?.is_dir() {
-            let path = entry.path().to_string_lossy().into_owned();
+            let path = entry.path().into();
             let rec_dir_tree = walk_dir_tree(&path)?;
             if rec_dir_tree.len() == 0 {
                 dirs.push(path);

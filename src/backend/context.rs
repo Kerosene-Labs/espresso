@@ -1,6 +1,10 @@
 use std::{env, error, io, path, result};
 
-use super::{lock::{self, StateLockFile}, project::get_config_from_fs, Config};
+use super::{
+    lock::{self, StateLockFile},
+    project::get_config_from_fs,
+    Config,
+};
 
 /// Represents the context of the currently loaded project.
 pub struct ProjectContext {
@@ -89,7 +93,7 @@ pub fn get_absolute_paths(debug_mode: &bool) -> io::Result<AbsoltuePaths> {
         dependencies: (cwd_string.clone() + "/.espresso/dependencies").into(),
         state_lockfile: (cwd_string.clone() + "/.espresso/state.lock.toml").into(),
         dependencies_extracted: (cwd_string.clone() + "/.espresso/dependencies_extracted").into(),
-        build: (cwd_string.clone() + "/build").into()
+        build: (cwd_string.clone() + "/build").into(),
     })
 }
 
@@ -104,13 +108,14 @@ pub fn get_absolute_paths(debug_mode: &bool) -> io::Result<AbsoltuePaths> {
 ///
 /// DynamicAbsolutePaths
 pub fn get_dynamic_absolute_paths(ap: &AbsoltuePaths, config: &Config) -> DynamicAbsolutePaths {
-    let base_package = ap.source.clone()
-            + "/" + config
-                .project
-                .base_package
-                .clone()
-                .replace(".", "/")
-                .as_str();
+    let base_package = ap.source.clone().to_string_lossy()
+        + "/"
+        + config
+            .project
+            .base_package
+            .clone()
+            .replace(".", "/")
+            .as_str();
     DynamicAbsolutePaths { base_package }
 }
 
@@ -125,7 +130,7 @@ pub fn get_project_context() -> result::Result<ProjectContext, Box<dyn error::Er
     let config = get_config_from_fs(&absolute_paths)?;
     let state_lock_file = lock::get_state_lockfile_from_fs(&absolute_paths)?;
     let dynamic_absolute_paths = get_dynamic_absolute_paths(&absolute_paths, &config);
-    
+
     Ok(ProjectContext {
         config,
         state_lock_file,

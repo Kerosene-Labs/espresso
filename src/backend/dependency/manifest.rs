@@ -1,4 +1,4 @@
-use std::{collections::HashMap, error, fs, result};
+use std::{collections::HashMap, error, fs, path, result};
 
 /// Represents the common fields in a MANIFEST.MF file
 pub enum CommonFields {
@@ -30,7 +30,7 @@ impl CommonFields {
 /// 
 /// # Returns
 /// A `HashMap<String, String>` representing the key/value pairs in the manifest.
-pub fn parse(path: &String) -> result::Result<HashMap<String, String>, Box<dyn error::Error>> {
+pub fn parse(path: &path::PathBuf) -> result::Result<HashMap<String, String>, Box<dyn error::Error>> {
     let content = fs::read_to_string(path)?;
     let mut manifest_hashmap: HashMap<String, String> = HashMap::new();
     for line in content.lines() {

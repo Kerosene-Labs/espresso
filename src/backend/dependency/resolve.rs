@@ -1,12 +1,15 @@
-use std::{collections::HashMap, error, fmt::format, result};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, error, path, result};
 
-use crate::{backend::context::ProjectContext, frontend::terminal::print_err, util::{self, error::EspressoError, net::download_file}};
+use crate::{
+    backend::context::ProjectContext,
+    util::{self, error::EspressoError, net::download_file},
+};
 
 /// Represents a resolved dependency
 #[derive(Serialize, Deserialize)]
 pub struct QueryPackagesResponse {
-    pub packages: Vec<Package>
+    pub packages: Vec<Package>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -14,7 +17,7 @@ pub struct Package {
     pub metadata: PackageMetadata,
     pub group_id: String,
     pub artifact_id: String,
-    #[serde(rename="ref")]
+    #[serde(rename = "ref")]
     pub ref_: String,
 }
 
@@ -43,52 +46,63 @@ pub enum Flags {
 }
 
 /// Query for packages from the Espresso Registry
-/// 
+///
 /// # Arguments
 /// * `q`: The query string
-/// 
+///
 /// # Returns
 /// Propagated errors, returns a `Vec` of `Package` struct(s). The `Vec` will be empty if no packages were returned in the query.
 pub async fn query(q: &String) -> result::Result<Vec<Package>, Box<dyn error::Error>> {
     let client = reqwest::Client::new();
 
     // make a request to the registry
-    let response = client.get("https://registry.espresso.hlafaille.xyz/v1/search")
+    let response = client
+        .get("https://registry.espresso.hlafaille.xyz/v1/search")
         .query(&[("q", q)])
         .send()
         .await?;
 
     // handle our response from the registry
     let response_text = response.text().await?;
-    let query_packages_response: QueryPackagesResponse = match serde_json::from_str(&response_text) {
+    let query_packages_response: QueryPackagesResponse = match serde_json::from_str(&response_text)
+    {
         Ok(v) => v,
         Err(_) => {
-            return Err(
-                EspressoError::nib(format!("Failed to deserialize response: Response content was: {}", response_text).as_str())
-            )
+            return Err(EspressoError::nib(
+                format!(
+                    "Failed to deserialize response: Response content was: {}",
+                    response_text
+                )
+                .as_str(),
+            ))
         }
     };
     Ok(query_packages_response.packages)
 }
 
 /// Download the latest version of a package
-pub async fn download(p_ctx: &ProjectContext, package: &Package) -> result::Result<String, Box<dyn error::Error>> {
+pub async fn download(
+    p_ctx: &ProjectContext,
+    package: &Package,
+) -> result::Result<path::PathBuf, Box<dyn error::Error>> {
     // get the latest version of this project
     let version = match package.metadata.versions.get(0) {
         Some(v) => v,
         None => {
-            return Err(EspressoError::nib("Failed to get the latest version of the package (there are no versions)"))
+            return Err(EspressoError::nib(
+                "Failed to get the latest version of the package (there are no versions)",
+            ))
         }
     };
 
     // establish our full path
-    let download_path = p_ctx.absolute_paths.dependencies.clone() + format!("/{}.jar", version.sha512sum).as_str();
+    let download_path = p_ctx.absolute_paths.dependencies.join(format!("/{}.jar", version.sha512sum));
 
     // download the file
     download_file(&version.artifact_url, &download_path).await?;
 
     // ensure integrity
     util::pathutil::ensure_integrity_sha512(&download_path, &version.sha512sum).await?;
-    
+
     Ok(download_path)
 }

@@ -32,12 +32,12 @@ pub fn copy_classes(
     p_ctx: &ProjectContext,
     dependency: &StateLockFileDependency
 ) -> result::Result<(), Box<dyn error::Error>>{
-    let source = p_ctx.absolute_paths.dependencies_extracted.clone() + "/" + dependency.checksum.as_str();
+    let source = p_ctx.absolute_paths.dependencies_extracted.join(format!("/{}", dependency.checksum.as_str()));
 
     // get our directory tree
     let dir_tree = util::directory::walk_dir_tree(&source)?;
 
-    let manifest = manifest::parse(&(source + "/META-INF/MANIFEST.MF"));
+    let manifest = manifest::parse(&source.join("META-INF/MANIFEST.MF"))?;
     
     // copy
     // println!("{:?}", class_files);

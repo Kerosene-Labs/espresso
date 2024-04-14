@@ -1,5 +1,5 @@
 use core::panic;
-use std::{error, path::Path, result};
+use std::{error, path::{self, Path}, result};
 use tokio::fs;
 use sha2::{Digest, Sha512};
 use super::error::EspressoError;
@@ -23,7 +23,7 @@ pub fn does_path_exist(path: &String) -> bool {
 /// # Returns
 /// SHA512 checksum as a hex string, propagated errors.
 pub async fn get_sha512_of_path(
-    path: &String
+    path: &path::PathBuf
 ) -> result::Result<String, Box<dyn error::Error>> {
     let contents = fs::read(path).await?;
 
@@ -42,7 +42,7 @@ pub async fn get_sha512_of_path(
 /// * `path`: Reference to a `String` containing the path of the file to check
 /// * `expected_sha512_hex`: SHA512 hexadecimal string to compare against
 pub async fn ensure_integrity_sha512(
-    path: &String,
+    path: &path::PathBuf,
     expected_sha512_hex: &String,
 ) -> result::Result<(), Box<dyn error::Error>> {
     let sha512hex = get_sha512_of_path(path).await?;

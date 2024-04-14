@@ -1,4 +1,4 @@
-use std::error;
+use std::{error, path};
 
 use tokio::{fs::File, io::AsyncWriteExt};
 
@@ -10,7 +10,7 @@ use tokio::{fs::File, io::AsyncWriteExt};
 /// 
 /// # Returns
 /// Propagates any errors
-pub async fn download_file(url: &String, path: &String) -> Result<(), Box<dyn error::Error>> {
+pub async fn download_file(url: &String, path: &path::PathBuf) -> Result<(), Box<dyn error::Error>> {
     let response = reqwest::get(url).await?;
 
     if response.status().is_success() {
