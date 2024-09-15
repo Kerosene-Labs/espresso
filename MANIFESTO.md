@@ -1,5 +1,6 @@
 # Build Tooling In Java Sucks
-*A Manifesto*
+*You wouldn't use a sledge hammer to hang a picture, would you?*
+
 
 Java is a great language. It's been running swaths of the internet for decades. It's stood the test of time,
 even if it's acquired some baggage over those 25/30 years. It's fast, it's incredibly secure, it's featureful, and the tooling
@@ -46,6 +47,3 @@ the Java ecosystem grow and succeed, hopefully becoming on par with languages li
 
 Inspired by Nixpkgs and Flatpak, The **Espresso Registry** is maintained as a GitHub repo, which gets introspected 
 and served by the `espresso-registry-server`. Open governance is key in todays interconnected world.
-
-
-*You wouldn't use a sledge hammer to hang a picture, would you?*
