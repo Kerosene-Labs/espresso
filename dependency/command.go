@@ -28,5 +28,14 @@ func AssembleCommandHierarchy() *cobra.Command {
 		},
 	}
 	root.AddCommand(sync)
+
+	var add = &cobra.Command{
+		Use:   "add",
+		Short: "Add a dependency to the project configuration.",
+		Run: func(cmd *cobra.Command, args []string) {
+			println("TODO")
+		},
+	}
+	root.AddCommand(add)
 	return root
 }

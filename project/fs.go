@@ -27,7 +27,7 @@ func GetSourcePath(cfg *ProjectConfig) (*string, error) {
 		path += "/ESPRESSO_DEBUG"
 	}
 
-	path += "/java/" + strings.ReplaceAll(cfg.BasePackage, ".", "/")
+	path += "/src/java/" + strings.ReplaceAll(cfg.BasePackage, ".", "/")
 	return &path, nil
 }
 
@@ -39,10 +39,10 @@ func GetConfigPath() (*string, error) {
 	}
 
 	if IsDebugMode() {
-		path := wd + "/ESPRESSO_DEBUG/" + "espresso.yml"
+		path := wd + "/ESPRESSO_DEBUG" + "/espresso.yml"
 		return &path, nil
 	} else {
-		path := wd + "espresso.yml"
+		path := wd + "/espresso.yml"
 		return &path, nil
 	}
 }

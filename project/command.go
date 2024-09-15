@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"hlafaille.xyz/espresso/v0/toolchain"
 )
 
 func AssembleCommandHierarchy() *cobra.Command {
@@ -12,6 +13,16 @@ func AssembleCommandHierarchy() *cobra.Command {
 		Use:   "project",
 		Short: "Manage a project within the current directory.",
 	}
+
+	var build = &cobra.Command{
+		Use:     "build",
+		Short:   "Build the project.",
+		Aliases: []string{"b"},
+		Run: func(cmd *cobra.Command, args []string) {
+			println("TODO")
+		},
+	}
+	root.AddCommand(build)
 
 	var init = &cobra.Command{
 		Use:     "init",
@@ -21,8 +32,18 @@ func AssembleCommandHierarchy() *cobra.Command {
 			var name, _ = cmd.Flags().GetString("name")
 			var basePackage, _ = cmd.Flags().GetString("package")
 
+			// ensure JAVA_HOME is set
+			javaHome, err := toolchain.GetJavaHome()
+			if err != nil {
+				fmt.Println("JAVA_HOME is not set, do you have Java installed?")
+			}
+
 			// ensure a proejct doesn't already exist
-			if ConfigExists() {
+			cfgExists, err := ConfigExists()
+			if err != nil {
+				fmt.Println("Error occurred while ensuring a config doesn't already exist")
+				panic(err)
+			} else if *cfgExists {
 				fmt.Println("Config already exists")
 				os.Exit(1)
 			}
@@ -39,14 +60,18 @@ func AssembleCommandHierarchy() *cobra.Command {
 					Hotfix: nil,
 				},
 				BasePackage: basePackage,
+				Toolchain: Toolchain{
+					Path: *javaHome,
+				},
 			}
 
-			// persist the config
-			PersistConfig(&cfg)
-
 			// write some example code
-			println("Writing example code")
+			println("Creating base package, writing example code")
 			WriteExampleCode(&cfg)
+
+			// persist the config
+			println("Persisting project configuration")
+			PersistConfig(&cfg)
 
 			println("Done.")
 		},

@@ -7,6 +7,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Toolchain represents the toolchain on the system
+type Toolchain struct {
+	Path string `yaml:"path"`
+}
+
 // ProjectVersion represents a semantic version number
 type Version struct {
 	Major  int64   `yaml:"major"`
@@ -17,9 +22,10 @@ type Version struct {
 
 // Project represents an Espresso project
 type ProjectConfig struct {
-	Name        string  `yaml:"name"`
-	Version     Version `yaml:"version"`
-	BasePackage string  `yaml:"base_package"`
+	Name        string    `yaml:"name"`
+	Version     Version   `yaml:"version"`
+	BasePackage string    `yaml:"base_package"`
+	Toolchain   Toolchain `yaml:"toolchain"`
 }
 
 // MarshalConfig marshals the given ProjectConfig to yml
@@ -33,12 +39,15 @@ func MarshalConfig(cfg *ProjectConfig) (*string, error) {
 }
 
 // ConfigExists gets if a config exists at the current directory
-func ConfigExists() bool {
-	_, err := os.Stat("espresso.yml")
-	if os.IsNotExist(err) {
-		return false
+func ConfigExists() (*bool, error) {
+	configPath, err := GetConfigPath()
+	if err != nil {
+		return nil, err
 	}
-	return err == nil
+
+	_, err = os.Stat(*configPath)
+	resp := err == nil || !os.IsNotExist(err)
+	return &resp, nil
 }
 
 // WriteExampleCode is an internal function that writes example code to a newly created project
@@ -81,7 +90,12 @@ func PersistConfig(cfg *ProjectConfig) error {
 	}
 
 	// write the config
-	if ConfigExists() {
+	cfgExists, err := ConfigExists()
+	if err != nil {
+		return err
+	}
+
+	if *cfgExists {
 		file, err := os.Open(*cfgPath)
 		if err != nil {
 			return err
