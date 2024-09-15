@@ -40,9 +40,12 @@ for how to configure plugins. Espresso uses YAML because it's ubiquitous and rea
 ### Open Source Forever
 
 We're not going to be motivated financially to push our users to use our commercial products. We want to see
-the Java ecosystem grow and succeed, hopefully becoming on par with langauges like Go and Rust (Love you, Cargo).
+the Java ecosystem grow and succeed, hopefully becoming on par with languages like Go and Rust (Love you, Cargo).
 
 ### Standardized Repository
 
 Inspired by Nixpkgs and Flatpak, The **Espresso Registry** is maintained as a GitHub repo, which gets introspected 
 and served by the `espresso-registry-server`. Open governance is key in todays interconnected world.
+
+
+*You wouldn't use a sledge hammer to hang a picture, would you?*
