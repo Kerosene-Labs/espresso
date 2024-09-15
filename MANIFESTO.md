@@ -32,4 +32,17 @@ Compiler Plugins, etc. If you build with Espresso, and your application DOES gro
 with more features (congrats!), switching to Maven or Gradle is possible. You'll probably need to refactor
 away some tech debt anyways.
 
-### 
+### YAML Configuration
+
+Groovy is cool, I guess..? I hate it as a configuration language though. No one ever has a straight answer
+for how to configure plugins. Espresso uses YAML because it's ubiquitous and readable.
+
+### Open Source Forever
+
+We're not going to be motivated financially to push our users to use our commercial products. We want to see
+the Java ecosystem grow and succeed, hopefully becoming on par with langauges like Go and Rust (Love you, Cargo).
+
+### Standardized Repository
+
+Inspired by Nixpkgs and Flatpak, The **Espresso Registry** is maintained as a GitHub repo, which gets introspected 
+and served by the `espresso-registry-server`. Open governance is key in todays interconnected world.
