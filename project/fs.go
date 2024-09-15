@@ -31,6 +31,7 @@ func GetSourcePath(cfg *ProjectConfig) (*string, error) {
 	return &path, nil
 }
 
+// GetConfigPath gets the absolute path to the config file
 func GetConfigPath() (*string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
