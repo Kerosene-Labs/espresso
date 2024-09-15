@@ -10,12 +10,13 @@ import (
 func AssembleCommandHierarchy() *cobra.Command {
 	var root = &cobra.Command{
 		Use:   "project",
-		Short: "Manage a project within the current working directory.",
+		Short: "Manage a project within the current directory.",
 	}
 
 	var init = &cobra.Command{
-		Use:   "init",
-		Short: "Initialize a new project.",
+		Use:     "init",
+		Short:   "Initialize a new project.",
+		Aliases: []string{"i"},
 		Run: func(cmd *cobra.Command, args []string) {
 			var name, _ = cmd.Flags().GetString("name")
 			var basePackage, _ = cmd.Flags().GetString("package")
