@@ -1,4 +1,4 @@
-package project
+package internal
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"hlafaille.xyz/espresso/v0/toolchain"
 )
 
-func AssembleCommandHierarchy() *cobra.Command {
+func GetProjectCommand() *cobra.Command {
 	var root = &cobra.Command{
 		Use:   "project",
 		Short: "Manage a project within the current directory.",
@@ -31,6 +31,15 @@ func AssembleCommandHierarchy() *cobra.Command {
 				fmt.Printf("An error occurred while discovering source files: %s\n", err)
 			}
 			fmt.Printf("Discovered %d source file(s)\n", len(files))
+
+			// run the compiler on each source file
+			for _, value := range files {
+				println("Compiling: " + value.Path)
+				CompileSourceFile(cfg, &value)
+			}
+
+			// package the project
+			println("Done")
 		},
 	}
 	root.AddCommand(build)
@@ -95,5 +104,43 @@ func AssembleCommandHierarchy() *cobra.Command {
 	init.MarkFlagRequired("name")
 	root.AddCommand(init)
 
+	return root
+}
+
+func GetDependencyCommand() *cobra.Command {
+	var root = &cobra.Command{
+		Use:   "dependency",
+		Short: "Manage dependencies for the project within the current directory.",
+	}
+
+	var query = &cobra.Command{
+		Use:     "query",
+		Short:   "Query the registries for the given search term.",
+		Aliases: []string{"q"},
+		Run: func(cmd *cobra.Command, args []string) {
+			println("TODO")
+		},
+	}
+	query.Flags().StringP("term", "t", "", "Term to query by")
+	query.MarkFlagRequired("term")
+	root.AddCommand(query)
+
+	var sync = &cobra.Command{
+		Use:   "sync",
+		Short: "Sync dependencies declared in the project configuration with dependencies on the local filesystem.",
+		Run: func(cmd *cobra.Command, args []string) {
+			println("TODO")
+		},
+	}
+	root.AddCommand(sync)
+
+	var add = &cobra.Command{
+		Use:   "add",
+		Short: "Add a dependency to the project configuration.",
+		Run: func(cmd *cobra.Command, args []string) {
+			println("TODO")
+		},
+	}
+	root.AddCommand(add)
 	return root
 }

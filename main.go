@@ -2,8 +2,7 @@ package main
 
 import (
 	"github.com/spf13/cobra"
-	"hlafaille.xyz/espresso/v0/dependency"
-	"hlafaille.xyz/espresso/v0/project"
+	"hlafaille.xyz/espresso/v0/internal"
 )
 
 func main() {
@@ -13,8 +12,8 @@ func main() {
 	}
 
 	// project commands
-	root.AddCommand(project.AssembleCommandHierarchy())
-	root.AddCommand(dependency.AssembleCommandHierarchy())
+	root.AddCommand(internal.GetProjectCommand())
+	root.AddCommand(internal.GetDependencyCommand())
 
 	// execute
 	root.Execute()
