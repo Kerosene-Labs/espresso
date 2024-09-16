@@ -8,16 +8,55 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// GetProjectCommand returns the pre-built Cobra Command 'project'
-func GetProjectCommand() *cobra.Command {
+func GetCleanCommand() *cobra.Command {
 	var root = &cobra.Command{
-		Use:   "project",
-		Short: "Manage a project within the current directory.",
-	}
+		Use:     "clean",
+		Short:   "Clean the build context",
+		Aliases: []string{"c"},
+		Run: func(cmd *cobra.Command, args []string) {
+			// get the config
+			cfg, err := GetConfig()
+			if err != nil {
+				fmt.Printf("An error occurred while reading the config: %s\n", err)
+			}
 
-	var build = &cobra.Command{
+			// get the build dir
+			buildPath, err := GetBuildPath(cfg)
+			if err != nil {
+				fmt.Printf("An error occurred while getting the build path: %s\n", err)
+				return
+			}
+
+			// get the dist dir
+			distPath, err := GetDistPath(cfg)
+			if err != nil {
+				fmt.Printf("An error occurred while getting the build path: %s\n", err)
+				return
+			}
+
+			// remove the build dir
+			err = os.RemoveAll(*buildPath)
+			if err != nil {
+				fmt.Printf("An error occurred while deleting the build path: %s\n", err)
+				return
+			}
+
+			// remove the dist dir
+			err = os.RemoveAll(*distPath)
+			if err != nil {
+				fmt.Printf("An error occurred while deleting the dist path: %s\n", err)
+				return
+			}
+		},
+	}
+	return root
+}
+
+// GetProjectCommand returns the pre-built Cobra Command 'project'
+func GetBuildCommand() *cobra.Command {
+	var root = &cobra.Command{
 		Use:     "build",
-		Short:   "Build the project.",
+		Short:   "Build the project, outputting a distributable.",
 		Aliases: []string{"b"},
 		Run: func(cmd *cobra.Command, args []string) {
 			// get the config
@@ -25,6 +64,7 @@ func GetProjectCommand() *cobra.Command {
 			if err != nil {
 				fmt.Printf("An error occurred while reading the config: %s\n", err)
 			}
+			fmt.Printf("Building '%s', please ensure you are compliant with all dependency licenses\n", cfg.Name)
 
 			// discover source files
 			files, err := DiscoverSourceFiles(cfg)
@@ -46,12 +86,19 @@ func GetProjectCommand() *cobra.Command {
 			wg.Wait()
 
 			// package the project
+			println("Packaging")
+			err = PackageClasses(cfg)
+			if err != nil {
+				fmt.Printf("An error occurred while packaging the classes: %s\n", err)
+			}
 			println("Done")
 		},
 	}
-	root.AddCommand(build)
+	return root
+}
 
-	var init = &cobra.Command{
+func GetInitCommand() *cobra.Command {
+	var root = &cobra.Command{
 		Use:     "init",
 		Short:   "Initialize a new project.",
 		Aliases: []string{"i"},
@@ -106,11 +153,9 @@ func GetProjectCommand() *cobra.Command {
 			println("Done.")
 		},
 	}
-	init.Flags().StringP("name", "n", "", "Name of the project")
-	init.Flags().StringP("package", "p", "org.example.myapp", "Base package of the application")
-	init.MarkFlagRequired("name")
-	root.AddCommand(init)
-
+	root.Flags().StringP("name", "n", "", "Name of the project")
+	root.Flags().StringP("package", "p", "org.example.myapp", "Base package of the application")
+	root.MarkFlagRequired("name")
 	return root
 }
 

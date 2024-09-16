@@ -12,7 +12,9 @@ func main() {
 	}
 
 	// project commands
-	root.AddCommand(internal.GetProjectCommand())
+	root.AddCommand(internal.GetCleanCommand())
+	root.AddCommand(internal.GetBuildCommand())
+	root.AddCommand(internal.GetInitCommand())
 	root.AddCommand(internal.GetDependencyCommand())
 
 	// execute

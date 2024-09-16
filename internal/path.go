@@ -52,3 +52,19 @@ func GetBuildPath(cfg *ProjectConfig) (*string, error) {
 	path += "/build"
 	return &path, nil
 }
+
+// GetDistPath gets the absolute path to the dist directory
+func GetDistPath(cfg *ProjectConfig) (*string, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	path := wd
+
+	if IsDebugMode() {
+		path += "/ESPRESSO_DEBUG"
+	}
+
+	path += "/dist"
+	return &path, nil
+}
