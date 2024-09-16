@@ -1,4 +1,4 @@
-# [espresso](https://espresso.kerosenelabs.io)
+# [Espresso](https://espresso.kerosenelabs.io)
 *You wouldn't use a sledgehammer to hang a picture frame, would you?*
 
 Espresso is a Java build tool for modern development.
