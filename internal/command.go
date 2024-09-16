@@ -90,6 +90,7 @@ func GetBuildCommand() *cobra.Command {
 			err = PackageClasses(cfg)
 			if err != nil {
 				fmt.Printf("An error occurred while packaging the classes: %s\n", err)
+				return
 			}
 			println("Done")
 		},

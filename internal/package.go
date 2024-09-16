@@ -66,12 +66,13 @@ func PackageClasses(cfg *ProjectConfig) error {
 		args = append(args, "-C", "build")
 	}
 	args = append(args, ".")
+
 	// run the command
 	fmt.Printf("Running: %s %s\n", command, args)
 	cmd := exec.Command(command, args...)
-	output, err := cmd.Output()
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		println(string(output))
+		fmt.Printf("%s", output)
 		return err
 	}
 

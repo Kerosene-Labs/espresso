@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"os/exec"
 )
 
@@ -10,16 +11,17 @@ func CompileSourceFile(cfg *ProjectConfig, srcFile *SourceFile) error {
 	command := cfg.Toolchain.Path + "/bin/javac"
 	args := []string{}
 	if IsDebugMode() {
-		args = append(args, "-d", "ESPRESSO_DEBUG/build")
+		args = append(args, "-cp", "ESPRESSO_DEBUG/src/java", "-d", "ESPRESSO_DEBUG/build")
 	} else {
-		args = append(args, "build")
+		args = append(args, "-cp", "src/java", "build")
 	}
 	args = append(args, srcFile.Path)
 	cmd := exec.Command(command, args...)
 
 	// handle output
-	_, err := cmd.Output()
+	output, err := cmd.CombinedOutput()
 	if err != nil {
+		fmt.Printf("%s", output)
 		return err
 	}
 	return nil
