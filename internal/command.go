@@ -181,7 +181,7 @@ func GetDependencyCommand() *cobra.Command {
 
 	var sync = &cobra.Command{
 		Use:   "sync",
-		Short: "Sync dependencies declared in the project configuration with dependencies on the local filesystem.",
+		Short: "Sync the dependencies declared in the project configuration with dependencies on the local filesystem.",
 		Run: func(cmd *cobra.Command, args []string) {
 			println("TODO")
 		},
@@ -196,5 +196,14 @@ func GetDependencyCommand() *cobra.Command {
 		},
 	}
 	root.AddCommand(add)
+
+	var invalidate = &cobra.Command{
+		Use:   "invalidate",
+		Short: "Invalidate the local registry caches, thereby forcing the newest data to your local version.",
+		Run: func(cmd *cobra.Command, args []string) {
+			println("TODO")
+		},
+	}
+	root.AddCommand(invalidate)
 	return root
 }
