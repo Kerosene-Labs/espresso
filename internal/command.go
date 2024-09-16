@@ -3,11 +3,12 @@ package internal
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/spf13/cobra"
-	"hlafaille.xyz/espresso/v0/toolchain"
 )
 
+// GetProjectCommand returns the pre-built Cobra Command 'project'
 func GetProjectCommand() *cobra.Command {
 	var root = &cobra.Command{
 		Use:   "project",
@@ -33,10 +34,16 @@ func GetProjectCommand() *cobra.Command {
 			fmt.Printf("Discovered %d source file(s)\n", len(files))
 
 			// run the compiler on each source file
+			var wg sync.WaitGroup
 			for _, value := range files {
-				println("Compiling: " + value.Path)
-				CompileSourceFile(cfg, &value)
+				wg.Add(1)
+				go func(f *SourceFile) {
+					defer wg.Done()
+					println("Compiling: " + f.Path)
+					CompileSourceFile(cfg, &value)
+				}(&value)
 			}
+			wg.Wait()
 
 			// package the project
 			println("Done")
@@ -53,7 +60,7 @@ func GetProjectCommand() *cobra.Command {
 			var basePackage, _ = cmd.Flags().GetString("package")
 
 			// ensure JAVA_HOME is set
-			javaHome, err := toolchain.GetJavaHome()
+			javaHome, err := GetJavaHome()
 			if err != nil {
 				fmt.Println("JAVA_HOME is not set, do you have Java installed?")
 			}
@@ -107,6 +114,7 @@ func GetProjectCommand() *cobra.Command {
 	return root
 }
 
+// GetDependencyCommand returns the pre build Cobra Command 'dependency'
 func GetDependencyCommand() *cobra.Command {
 	var root = &cobra.Command{
 		Use:   "dependency",
