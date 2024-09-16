@@ -13,11 +13,6 @@ type SourceFile struct {
 	Content string
 }
 
-// readSourceFile reads the file at the given path, or returns an error
-func readSourceFile(path string) (*SourceFile, error) {
-	return nil, nil
-}
-
 // IntrospectSourceFiles iterates over the project's base package looking for .java files
 // TODO: make this a goroutine?
 func DiscoverSourceFiles(cfg *ProjectConfig) ([]SourceFile, error) {
