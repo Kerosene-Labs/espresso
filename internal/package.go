@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"os/exec"
 )
@@ -68,12 +68,10 @@ func PackageClasses(cfg *ProjectConfig) error {
 	args = append(args, ".")
 
 	// run the command
-	fmt.Printf("Running: %s %s\n", command, args)
 	cmd := exec.Command(command, args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("%s", output)
-		return err
+		return errors.New(string(output))
 	}
 
 	return nil

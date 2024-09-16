@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"fmt"
+	"errors"
 	"os/exec"
 )
 
@@ -21,8 +21,7 @@ func CompileSourceFile(cfg *ProjectConfig, srcFile *SourceFile) error {
 	// handle output
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("%s", output)
-		return err
+		return errors.New(string(output))
 	}
 	return nil
 }
