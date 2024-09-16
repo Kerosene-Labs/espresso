@@ -19,7 +19,18 @@ func AssembleCommandHierarchy() *cobra.Command {
 		Short:   "Build the project.",
 		Aliases: []string{"b"},
 		Run: func(cmd *cobra.Command, args []string) {
-			println("TODO")
+			// get the config
+			cfg, err := GetConfig()
+			if err != nil {
+				fmt.Printf("An error occurred while reading the config: %s\n", err)
+			}
+
+			// discover source files
+			files, err := DiscoverSourceFiles(cfg)
+			if err != nil {
+				fmt.Printf("An error occurred while discovering source files: %s\n", err)
+			}
+			fmt.Printf("Discovered %d source file(s)\n", len(files))
 		},
 	}
 	root.AddCommand(build)
@@ -62,6 +73,9 @@ func AssembleCommandHierarchy() *cobra.Command {
 				BasePackage: basePackage,
 				Toolchain: Toolchain{
 					Path: *javaHome,
+				},
+				Dependencies: Dependencies{
+					Repositories: []Registry{{Url: "https://github.com/Kerosene-Labs/espresso-registry/archive/refs/heads/main.zip"}},
 				},
 			}
 

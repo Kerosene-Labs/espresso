@@ -1,0 +1,4 @@
+FROM mcr.microsoft.com/devcontainers/go:1-1.22-bookworm AS builder
+
+# upgrade the container
+RUN apt-get update && apt-get upgrade -y

@@ -46,3 +46,19 @@ func GetConfigPath() (*string, error) {
 		return &path, nil
 	}
 }
+
+// GetBuildPath gets the absolute path to the build directory
+func GetBuildPath(cfg *ProjectConfig) (*string, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	path := wd
+
+	if IsDebugMode() {
+		path += "/ESPRESSO_DEBUG"
+	}
+
+	path += "/build"
+	return &path, nil
+}

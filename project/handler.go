@@ -7,6 +7,24 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Dependency represents a particular dependency
+type Dependency struct {
+	GroupID    string `yaml:"groupId"`
+	ArtifactID string `yaml:"artifactId"`
+	Version    string `yaml:"version"`
+}
+
+// Registry represents a particular repository
+type Registry struct {
+	Url string `yaml:"url"`
+}
+
+// Dependencies represents dependency management configuration
+type Dependencies struct {
+	Repositories []Registry   `yaml:"registries"`
+	Dependencies []Dependency `yaml:"uses"`
+}
+
 // Toolchain represents the toolchain on the system
 type Toolchain struct {
 	Path string `yaml:"path"`
@@ -20,12 +38,23 @@ type Version struct {
 	Hotfix *string `yaml:"hotfix"`
 }
 
-// Project represents an Espresso project
+// ProjectConfig represents an Espresso project
 type ProjectConfig struct {
-	Name        string    `yaml:"name"`
-	Version     Version   `yaml:"version"`
-	BasePackage string    `yaml:"base_package"`
-	Toolchain   Toolchain `yaml:"toolchain"`
+	Name         string       `yaml:"name"`
+	Version      Version      `yaml:"version"`
+	BasePackage  string       `yaml:"basePackage"`
+	Toolchain    Toolchain    `yaml:"toolchain"`
+	Dependencies Dependencies `yaml:"dependencies"`
+}
+
+// UnmarshalConfig marshals the given ProjectConfig to yml
+func UnmarshalConfig(cfgYml string) (*ProjectConfig, error) {
+	var cfg ProjectConfig
+	err := yaml.Unmarshal([]byte(cfgYml), &cfg)
+	if err != nil {
+		return nil, err
+	}
+	return &cfg, nil
 }
 
 // MarshalConfig marshals the given ProjectConfig to yml
@@ -36,6 +65,28 @@ func MarshalConfig(cfg *ProjectConfig) (*string, error) {
 	}
 	resp := string(data)
 	return &resp, nil
+}
+
+// GetConfig reads the config from the filesystem and returns a pointer to a ProjectConfig, or an error
+func GetConfig() (*ProjectConfig, error) {
+	// get the config path for this context
+	path, err := GetConfigPath()
+	if err != nil {
+		return nil, err
+	}
+
+	// read the file
+	file, err := os.ReadFile(*path)
+	if err != nil {
+		return nil, err
+	}
+
+	// unmarshal into a cfg struct
+	cfg, err := UnmarshalConfig(string(file))
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
 }
 
 // ConfigExists gets if a config exists at the current directory
