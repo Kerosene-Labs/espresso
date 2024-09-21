@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/spf13/cobra"
-	"hlafaille.xyz/espresso/v0/internal"
+	"hlafaille.xyz/espresso/v0/cli"
 )
 
 func main() {
@@ -11,11 +11,11 @@ func main() {
 		Short: "A modern Java build tool.",
 	}
 
-	root.AddCommand(internal.GetCleanCommand())
-	root.AddCommand(internal.GetBuildCommand())
-	root.AddCommand(internal.GetInitCommand())
-	root.AddCommand(internal.GetRegistryCommand())
-	root.AddCommand(internal.GetDependencyCommand())
+	root.AddCommand(cli.GetCleanCommand())
+	root.AddCommand(cli.GetBuildCommand())
+	root.AddCommand(cli.GetInitCommand())
+	root.AddCommand(cli.GetRegistryCommand())
+	root.AddCommand(cli.GetDependencyCommand())
 
 	// execute
 	root.Execute()

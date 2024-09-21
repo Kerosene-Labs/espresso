@@ -1,13 +1,16 @@
-package internal
+package toolchain
 
 import (
 	"errors"
 	"os"
 	"os/exec"
+
+	"hlafaille.xyz/espresso/v0/core/project"
+	"hlafaille.xyz/espresso/v0/core/util"
 )
 
 // GenerateManifest generates a JVM manifest
-func GenerateManifest(cfg *ProjectConfig) string {
+func GenerateManifest(cfg *project.ProjectConfig) string {
 	base := "Manifest-Version: 1.0\n"
 	base += "Main-Class: " + cfg.BasePackage + ".Main\n"
 	base += "Created-By: Espresso"
@@ -15,7 +18,7 @@ func GenerateManifest(cfg *ProjectConfig) string {
 }
 
 // Write the Manifest to the build directory
-func WriteManifest(cfg *ProjectConfig) error {
+func WriteManifest(cfg *project.ProjectConfig) error {
 	// get the path where it should live
 	buildPath, err := GetBuildPath(cfg)
 	path := *buildPath + "/MANIFEST.MF"
@@ -40,12 +43,12 @@ func WriteManifest(cfg *ProjectConfig) error {
 }
 
 // PackageClasses creates a .jar of the given classes
-func PackageClasses(cfg *ProjectConfig) error {
+func PackageClasses(cfg *project.ProjectConfig) error {
 	command := cfg.Toolchain.Path + "/bin/jar"
 	args := []string{"cfm"}
 
 	// handle jar output path
-	if IsDebugMode() {
+	if util.IsDebugMode() {
 		args = append(args, "ESPRESSO_DEBUG/dist/dist.jar")
 	} else {
 		args = append(args, "dist/dist.jar")
@@ -53,14 +56,14 @@ func PackageClasses(cfg *ProjectConfig) error {
 
 	// write the manifest, include it
 	WriteManifest(cfg)
-	if IsDebugMode() {
+	if util.IsDebugMode() {
 		args = append(args, "ESPRESSO_DEBUG/build/MANIFEST.MF")
 	} else {
 		args = append(args, "build/MANIFEST.MF")
 	}
 
 	// add the class directory
-	if IsDebugMode() {
+	if util.IsDebugMode() {
 		args = append(args, "-C", "ESPRESSO_DEBUG/build")
 	} else {
 		args = append(args, "-C", "build")

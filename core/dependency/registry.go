@@ -1,4 +1,4 @@
-package internal
+package dependency
 
 import (
 	"archive/zip"
@@ -9,6 +9,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"hlafaille.xyz/espresso/v0/core/project"
+	"hlafaille.xyz/espresso/v0/core/util"
 )
 
 type RegistryPackageVersion struct {
@@ -25,7 +28,7 @@ type RegistryPackage struct {
 }
 
 // GetCachePath gets the full cache path from the registry
-func GetCachePath(reg *Registry) (string, error) {
+func GetCachePath(reg *project.Registry) (string, error) {
 	// get our home dir
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -35,7 +38,7 @@ func GetCachePath(reg *Registry) (string, error) {
 }
 
 // InvalidateRegistry invalidates a particular registry
-func InvalidateRegistryCache(reg *Registry) error {
+func InvalidateRegistryCache(reg *project.Registry) error {
 	// get our home dir
 	cachePath, err := GetCachePath(reg)
 	if err != nil {
@@ -95,7 +98,7 @@ func unzip(src string, dest string) error {
 }
 
 // Check if this registry is already cached
-func CacheRegistry(reg *Registry) error {
+func CacheRegistry(reg *project.Registry) error {
 	// get our cache path
 	cachePath, err := GetCachePath(reg)
 	if err != nil {
@@ -103,7 +106,7 @@ func CacheRegistry(reg *Registry) error {
 	}
 
 	// if the cache exists, error out
-	doesExist, err := DoesFileExist(cachePath)
+	doesExist, err := util.DoesFileExist(cachePath)
 	if err != nil {
 		return err
 	}
@@ -118,7 +121,7 @@ func CacheRegistry(reg *Registry) error {
 	}
 
 	// download the registry archive
-	err = DownloadFile(cachePath+"/archive.zip", reg.Url)
+	err = util.DownloadFile(cachePath+"/archive.zip", reg.Url)
 	if err != nil {
 		return err
 	}
@@ -128,7 +131,7 @@ func CacheRegistry(reg *Registry) error {
 	unzip(cachePath+"/archive.zip", cachePath+"/lookup")
 
 	// check if the registry lookup contains a dependencies folder
-	doesDepsExist, err := DoesFileExist(cachePath + "/lookup/espresso-registry-main/dependencies")
+	doesDepsExist, err := util.DoesFileExist(cachePath + "/lookup/espresso-registry-main/dependencies")
 	if err != nil {
 		fmt.Printf("An error occurred while reading the registry's lookup directory: %s\n", err)
 	}
@@ -141,7 +144,7 @@ func CacheRegistry(reg *Registry) error {
 }
 
 // getDirectoriesInRegistryCache gets all directories (aka groupId's) within the specified registry cache
-func getDirectoriesInRegistryCache(reg Registry) ([]string, error) {
+func getDirectoriesInRegistryCache(reg project.Registry) ([]string, error) {
 	// get the cache path
 	cachePath, err := GetCachePath(&reg)
 	if err != nil {
@@ -167,7 +170,7 @@ func getDirectoriesInRegistryCache(reg Registry) ([]string, error) {
 }
 
 // GetRegistryPackages parses all packages within the cache for a given registry
-func GetRegistryPackages(reg Registry) ([]RegistryPackage, error) {
+func GetRegistryPackages(reg project.Registry) ([]RegistryPackage, error) {
 	// get the directories
 	dirs, err := getDirectoriesInRegistryCache(reg)
 	if err != nil {

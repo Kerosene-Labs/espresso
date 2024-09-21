@@ -1,10 +1,11 @@
-package internal
+package project
 
 import (
 	"os"
 	"strings"
 
 	"gopkg.in/yaml.v3"
+	"hlafaille.xyz/espresso/v0/core/util"
 )
 
 // Dependency represents a particular dependency
@@ -71,7 +72,7 @@ func MarshalConfig(cfg *ProjectConfig) (*string, error) {
 // GetConfig reads the config from the filesystem and returns a pointer to a ProjectConfig, or an error
 func GetConfig() (*ProjectConfig, error) {
 	// get the config path for this context
-	path, err := GetConfigPath()
+	path, err := util.GetConfigPath()
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +93,7 @@ func GetConfig() (*ProjectConfig, error) {
 
 // ConfigExists gets if a config exists at the current directory
 func ConfigExists() (*bool, error) {
-	configPath, err := GetConfigPath()
+	configPath, err := util.GetConfigPath()
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +137,7 @@ func PersistConfig(cfg *ProjectConfig) error {
 		return err
 	}
 
-	cfgPath, err := GetConfigPath()
+	cfgPath, err := util.GetConfigPath()
 	if err != nil {
 		return err
 	}

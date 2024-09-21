@@ -1,4 +1,4 @@
-package internal
+package cli
 
 import (
 	"fmt"
@@ -6,6 +6,10 @@ import (
 	"sync"
 
 	"github.com/spf13/cobra"
+	"hlafaille.xyz/espresso/v0/core/dependency"
+	"hlafaille.xyz/espresso/v0/core/project"
+	"hlafaille.xyz/espresso/v0/core/toolchain"
+	"hlafaille.xyz/espresso/v0/core/util"
 )
 
 func GetCleanCommand() *cobra.Command {
@@ -15,20 +19,20 @@ func GetCleanCommand() *cobra.Command {
 		Aliases: []string{"c"},
 		Run: func(cmd *cobra.Command, args []string) {
 			// get the config
-			cfg, err := GetConfig()
+			cfg, err := project.GetConfig()
 			if err != nil {
 				fmt.Printf("An error occurred while reading the config: %s\n", err)
 			}
 
 			// get the build dir
-			buildPath, err := GetBuildPath(cfg)
+			buildPath, err := toolchain.GetBuildPath(cfg)
 			if err != nil {
 				fmt.Printf("An error occurred while getting the build path: %s\n", err)
 				return
 			}
 
 			// get the dist dir
-			distPath, err := GetDistPath(cfg)
+			distPath, err := toolchain.GetDistPath(cfg)
 			if err != nil {
 				fmt.Printf("An error occurred while getting the build path: %s\n", err)
 				return
@@ -60,14 +64,14 @@ func GetBuildCommand() *cobra.Command {
 		Aliases: []string{"b"},
 		Run: func(cmd *cobra.Command, args []string) {
 			// get the config
-			cfg, err := GetConfig()
+			cfg, err := project.GetConfig()
 			if err != nil {
 				fmt.Printf("An error occurred while reading the config: %s\n", err)
 			}
 			fmt.Printf("Building '%s', please ensure you are compliant with all dependency licenses\n", cfg.Name)
 
 			// discover source files
-			files, err := DiscoverSourceFiles(cfg)
+			files, err := project.DiscoverSourceFiles(cfg)
 			if err != nil {
 				fmt.Printf("An error occurred while discovering source files: %s\n", err)
 			}
@@ -77,17 +81,17 @@ func GetBuildCommand() *cobra.Command {
 			var wg sync.WaitGroup
 			for _, value := range files {
 				wg.Add(1)
-				go func(f *SourceFile) {
+				go func(f *project.SourceFile) {
 					defer wg.Done()
 					println("Compiling: " + f.Path)
-					CompileSourceFile(cfg, &value)
+					toolchain.CompileSourceFile(cfg, &value)
 				}(&value)
 			}
 			wg.Wait()
 
 			// package the project
 			println("Packaging")
-			err = PackageClasses(cfg)
+			err = toolchain.PackageClasses(cfg)
 			if err != nil {
 				fmt.Printf("An error occurred while packaging the classes: %s\n", err)
 				return
@@ -108,13 +112,13 @@ func GetInitCommand() *cobra.Command {
 			var basePackage, _ = cmd.Flags().GetString("package")
 
 			// ensure JAVA_HOME is set
-			javaHome, err := GetJavaHome()
+			javaHome, err := util.GetJavaHome()
 			if err != nil {
 				fmt.Println("JAVA_HOME is not set, do you have Java installed?")
 			}
 
 			// ensure a proejct doesn't already exist
-			cfgExists, err := ConfigExists()
+			cfgExists, err := project.ConfigExists()
 			if err != nil {
 				fmt.Println("Error occurred while ensuring a config doesn't already exist")
 				panic(err)
@@ -126,30 +130,30 @@ func GetInitCommand() *cobra.Command {
 			fmt.Printf("Creating '%s'\n", name)
 
 			// create a base config
-			cfg := ProjectConfig{
+			cfg := project.ProjectConfig{
 				Name: name,
-				Version: Version{
+				Version: project.Version{
 					Major:  0,
 					Minor:  1,
 					Patch:  0,
 					Hotfix: nil,
 				},
 				BasePackage: basePackage,
-				Toolchain: Toolchain{
+				Toolchain: project.Toolchain{
 					Path: *javaHome,
 				},
-				Dependencies: Dependencies{
-					Registries: []Registry{{Name: "espresso-registry", Url: "https://github.com/Kerosene-Labs/espresso-registry/archive/refs/heads/main.zip"}},
+				Dependencies: project.Dependencies{
+					Registries: []project.Registry{{Name: "espresso-registry", Url: "https://github.com/Kerosene-Labs/espresso-registry/archive/refs/heads/main.zip"}},
 				},
 			}
 
 			// write some example code
 			println("Creating base package, writing example code")
-			WriteExampleCode(&cfg)
+			project.WriteExampleCode(&cfg)
 
 			// persist the config
 			println("Persisting project configuration")
-			PersistConfig(&cfg)
+			project.PersistConfig(&cfg)
 
 			println("Done.")
 		},
@@ -184,7 +188,7 @@ func GetRegistryCommand() *cobra.Command {
 		Short: "Sync the dependencies declared in the project configuration with dependencies on the local filesystem.",
 		Run: func(cmd *cobra.Command, args []string) {
 			// get the config
-			cfg, err := GetConfig()
+			cfg, err := project.GetConfig()
 			if err != nil {
 				fmt.Printf("An error occurred while reading the config: %s\n", err)
 			}
@@ -192,7 +196,7 @@ func GetRegistryCommand() *cobra.Command {
 			// iterate over each registry, invalidate it
 			for _, reg := range cfg.Dependencies.Registries {
 				fmt.Printf("Invalidating cache: %s\n", reg.Url)
-				err = InvalidateRegistryCache(&reg)
+				err = dependency.InvalidateRegistryCache(&reg)
 				if err != nil {
 					fmt.Printf("An error occurred while invalidaing cache(s): %s\n", err)
 				}
@@ -201,7 +205,7 @@ func GetRegistryCommand() *cobra.Command {
 			// iterate over each registry, download the zip
 			for _, reg := range cfg.Dependencies.Registries {
 				fmt.Printf("Downloading archive: %s\n", reg.Url)
-				err = CacheRegistry(&reg)
+				err = dependency.CacheRegistry(&reg)
 				if err != nil {
 					fmt.Printf("An error occurred while downloading the registry archive: %s\n", err)
 				}
