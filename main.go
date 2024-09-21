@@ -11,10 +11,10 @@ func main() {
 		Short: "A modern Java build tool.",
 	}
 
-	// project commands
 	root.AddCommand(internal.GetCleanCommand())
 	root.AddCommand(internal.GetBuildCommand())
 	root.AddCommand(internal.GetInitCommand())
+	root.AddCommand(internal.GetRegistryCommand())
 	root.AddCommand(internal.GetDependencyCommand())
 
 	// execute

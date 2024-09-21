@@ -5,10 +5,24 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 )
+
+type RegistryPackageVersion struct {
+	Number                string   `yaml:"number"`
+	ArtifactUrl           string   `yaml:"artifactUrl"`
+	TransientDependencies []string `yaml:"transientDependencies"`
+	IsAnnotationProcessor bool     `yaml:"isAnnotationProcessor"`
+}
+
+type RegistryPackage struct {
+	Name        string                   `yaml:"name"`
+	Description string                   `yaml:"description"`
+	Versions    []RegistryPackageVersion `yaml:"versions"`
+}
 
 // GetCachePath gets the full cache path from the registry
 func GetCachePath(reg *Registry) (string, error) {
@@ -125,3 +139,48 @@ func CacheRegistry(reg *Registry) error {
 	fmt.Println("Done")
 	return nil
 }
+
+// getDirectoriesInRegistryCache gets all directories (aka groupId's) within the specified registry cache
+func getDirectoriesInRegistryCache(reg Registry) ([]string, error) {
+	// get the cache path
+	cachePath, err := GetCachePath(&reg)
+	if err != nil {
+		return []string{}, err
+	}
+
+	// walk the directory for all groupId's
+	var dirs []string = []string{}
+	err = filepath.Walk(cachePath+"/lookup/espresso-registry-main/dependencies", func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			dirs = append(dirs, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return []string{}, err
+	}
+
+	return dirs, nil
+}
+
+// GetRegistryPackages parses all packages within the cache for a given registry
+func GetRegistryPackages(reg Registry) ([]RegistryPackage, error) {
+	// get the directories
+	dirs, err := getDirectoriesInRegistryCache(reg)
+	if err != nil {
+		return []RegistryPackage{}, err
+	}
+
+	fmt.Printf("%s", dirs)
+	return []RegistryPackage{}, nil
+}
+
+// ResolveDependency determines which registry is the best fit for a given dependency
+// func ResolveDependency(dep Dependency, regs []Registry) (Registry, error) {
+// 	for _, reg := range regs {
+
+// 	}
+// }

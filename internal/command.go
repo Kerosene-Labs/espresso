@@ -160,8 +160,8 @@ func GetInitCommand() *cobra.Command {
 	return root
 }
 
-// GetDependencyCommand returns the pre build Cobra Command 'dependency'
-func GetDependencyCommand() *cobra.Command {
+// GetRegistryCommand returns the pre build Cobra Command 'dependency'
+func GetRegistryCommand() *cobra.Command {
 	var root = &cobra.Command{
 		Use:   "registry",
 		Short: "Manage package registries for the project within the current directory.",
@@ -209,5 +209,24 @@ func GetDependencyCommand() *cobra.Command {
 		},
 	}
 	root.AddCommand(sync)
+	return root
+}
+
+func GetDependencyCommand() *cobra.Command {
+	var root = &cobra.Command{
+		Use:   "dependency",
+		Short: "Manage dependencies for the project within the current directory.",
+	}
+
+	var sync = &cobra.Command{
+		Use:     "sync",
+		Short:   "Fetch dependencies from the appropriate registries, storing them within their caches for consumption at compile time.",
+		Aliases: []string{"s"},
+		Run: func(cmd *cobra.Command, args []string) {
+			println("TODO")
+		},
+	}
+	root.AddCommand(sync)
+
 	return root
 }
