@@ -139,7 +139,7 @@ func GetInitCommand() *cobra.Command {
 					Path: *javaHome,
 				},
 				Dependencies: Dependencies{
-					Repositories: []Registry{{Url: "https://github.com/Kerosene-Labs/espresso-registry/archive/refs/heads/main.zip"}},
+					Registries: []Registry{{Name: "espresso-registry", Url: "https://github.com/Kerosene-Labs/espresso-registry/archive/refs/heads/main.zip"}},
 				},
 			}
 
@@ -163,8 +163,8 @@ func GetInitCommand() *cobra.Command {
 // GetDependencyCommand returns the pre build Cobra Command 'dependency'
 func GetDependencyCommand() *cobra.Command {
 	var root = &cobra.Command{
-		Use:   "dependency",
-		Short: "Manage dependencies for the project within the current directory.",
+		Use:   "registry",
+		Short: "Manage package registries for the project within the current directory.",
 	}
 
 	var query = &cobra.Command{
@@ -180,30 +180,34 @@ func GetDependencyCommand() *cobra.Command {
 	root.AddCommand(query)
 
 	var sync = &cobra.Command{
-		Use:   "sync",
+		Use:   "pull",
 		Short: "Sync the dependencies declared in the project configuration with dependencies on the local filesystem.",
 		Run: func(cmd *cobra.Command, args []string) {
-			println("TODO")
+			// get the config
+			cfg, err := GetConfig()
+			if err != nil {
+				fmt.Printf("An error occurred while reading the config: %s\n", err)
+			}
+
+			// iterate over each registry, invalidate it
+			for _, reg := range cfg.Dependencies.Registries {
+				fmt.Printf("Invalidating cache: %s\n", reg.Url)
+				err = InvalidateRegistryCache(&reg)
+				if err != nil {
+					fmt.Printf("An error occurred while invalidaing cache(s): %s\n", err)
+				}
+			}
+
+			// iterate over each registry, download the zip
+			for _, reg := range cfg.Dependencies.Registries {
+				fmt.Printf("Downloading archive: %s\n", reg.Url)
+				err = CacheRegistry(&reg)
+				if err != nil {
+					fmt.Printf("An error occurred while downloading the registry archive: %s\n", err)
+				}
+			}
 		},
 	}
 	root.AddCommand(sync)
-
-	var add = &cobra.Command{
-		Use:   "add",
-		Short: "Add a dependency to the project configuration.",
-		Run: func(cmd *cobra.Command, args []string) {
-			println("TODO")
-		},
-	}
-	root.AddCommand(add)
-
-	var invalidate = &cobra.Command{
-		Use:   "invalidate",
-		Short: "Invalidate the local registry caches, thereby forcing the newest data to your local version.",
-		Run: func(cmd *cobra.Command, args []string) {
-			println("TODO")
-		},
-	}
-	root.AddCommand(invalidate)
 	return root
 }

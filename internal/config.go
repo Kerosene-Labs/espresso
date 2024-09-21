@@ -16,7 +16,8 @@ type Dependency struct {
 
 // Registry represents a particular repository
 type Registry struct {
-	Url string `yaml:"url"`
+	Name string `yaml:"name"`
+	Url  string `yaml:"url"`
 }
 
 // Dependencies represents dependency management configuration
