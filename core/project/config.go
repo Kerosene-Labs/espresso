@@ -72,7 +72,7 @@ func MarshalConfig(cfg *ProjectConfig) (*string, error) {
 // GetConfig reads the config from the filesystem and returns a pointer to a ProjectConfig, or an error
 func GetConfig() (*ProjectConfig, error) {
 	// get the config path for this context
-	path, err := util.GetConfigPath()
+	path, err := GetConfigPath()
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func GetConfig() (*ProjectConfig, error) {
 
 // ConfigExists gets if a config exists at the current directory
 func ConfigExists() (*bool, error) {
-	configPath, err := util.GetConfigPath()
+	configPath, err := GetConfigPath()
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func PersistConfig(cfg *ProjectConfig) error {
 		return err
 	}
 
-	cfgPath, err := util.GetConfigPath()
+	cfgPath, err := GetConfigPath()
 	if err != nil {
 		return err
 	}
