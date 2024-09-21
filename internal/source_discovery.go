@@ -13,7 +13,7 @@ type SourceFile struct {
 	Content string
 }
 
-// IntrospectSourceFiles iterates over the project's base package looking for .java files
+// DiscoverSourceFiles iterates over the project's base package looking for .java files
 // TODO: make this a goroutine?
 func DiscoverSourceFiles(cfg *ProjectConfig) ([]SourceFile, error) {
 	// get the source path

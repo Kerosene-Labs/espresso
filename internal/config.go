@@ -21,7 +21,7 @@ type Registry struct {
 
 // Dependencies represents dependency management configuration
 type Dependencies struct {
-	Repositories []Registry   `yaml:"registries"`
+	Registries   []Registry   `yaml:"registries"`
 	Dependencies []Dependency `yaml:"uses"`
 }
 
