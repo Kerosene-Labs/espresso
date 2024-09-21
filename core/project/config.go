@@ -117,6 +117,7 @@ func WriteExampleCode(cfg *ProjectConfig) error {
 
 	// write some code
 	code := `package ${BASE_PACKAGE};
+
 import java.lang.System;
 
 public class Main {

@@ -1,6 +1,6 @@
 # Build Tooling In Java Sucks
-*You wouldn't use a sledge hammer to hang a picture, would you?*
 
+*You wouldn't use a sledge hammer to hang a picture, would you?*
 
 Java is a great language. It's been running swaths of the internet for decades. It's stood the test of time,
 even if it's acquired some baggage over those 25/30 years. It's fast, it's incredibly secure, it's featureful, and the tooling
@@ -9,7 +9,6 @@ with. There's just one problem, the build tooling. Maven and Gradle are needlesl
 don't need a 20 foot wide toolbox filled to the brim with Snap On. Most of the time, when I'm working with
 Java, it's in Spring and the microservices are deployed largely the same way. An embedded Tomcat server
 with the Spring Web Starter. Espresso aims to fill the void of simple build tooling.
-
 
 ## What we're doing different
 
@@ -43,7 +42,15 @@ for how to configure plugins. Espresso uses YAML because it's ubiquitous and rea
 We're not going to be motivated financially to push our users to use our commercial products. We want to see
 the Java ecosystem grow and succeed, hopefully becoming on par with languages like Go and Rust (Love you, Cargo).
 
-### Standardized Repository
+### Openly Governed Repository
 
-Inspired by Nixpkgs and Flatpak, The **Espresso Registry** is maintained as a GitHub repo, which gets introspected 
-and served by the `espresso-registry-server`. Open governance is key in todays interconnected world.
+Inspired by Nixpkgs and Flatpak, The **Espresso Registry** is maintained as a public GitHub repository to maintain
+accountability within the community. We want to grow trust. Espresso registries are simple `.zip` files that
+mimick the structure of the existing registry, and anyone can start one!
+
+### Built-in Extensions
+
+As opposed to having community developed plugins, our "extensions" will be merged in with main and toggled
+on or off per project with a configuration value. With this, you get full editor IntelliSense thanks to JSON Schema.
+While some might claim this increases the filesize of the Espresso executable, it's a tradeoff of efficiency versus developer
+quality of life.
