@@ -21,12 +21,6 @@ type Registry struct {
 	Url  string `yaml:"url"`
 }
 
-// Dependencies represents dependency management configuration
-type Dependencies struct {
-	Registries   []Registry   `yaml:"registries"`
-	Dependencies []Dependency `yaml:"uses"`
-}
-
 // Toolchain represents the toolchain on the system
 type Toolchain struct {
 	Path string `yaml:"path"`
@@ -46,7 +40,8 @@ type ProjectConfig struct {
 	Version      Version      `yaml:"version"`
 	BasePackage  string       `yaml:"basePackage"`
 	Toolchain    Toolchain    `yaml:"toolchain"`
-	Dependencies Dependencies `yaml:"dependencies"`
+	Dependencies []Dependency `yaml:"dependencies"`
+	Registries   []Registry   `yaml:"registries"`
 }
 
 // UnmarshalConfig marshals the given ProjectConfig to yml

@@ -66,14 +66,14 @@ func GetBuildCommand() *cobra.Command {
 			// get the config
 			cfg, err := project.GetConfig()
 			if err != nil {
-				fmt.Printf("An error occurred while reading the config: %s\n", err)
+				panic(fmt.Sprintf("An error occurred while reading the config: %s\n", err))
 			}
 			fmt.Printf("Building '%s', please ensure you are compliant with all dependency licenses\n", cfg.Name)
 
 			// discover source files
 			files, err := project.DiscoverSourceFiles(cfg)
 			if err != nil {
-				fmt.Printf("An error occurred while discovering source files: %s\n", err)
+				panic(fmt.Sprintf("An error occurred while discovering source files: %s\n", err))
 			}
 			fmt.Printf("Discovered %d source file(s)\n", len(files))
 
@@ -142,9 +142,8 @@ func GetInitCommand() *cobra.Command {
 				Toolchain: project.Toolchain{
 					Path: *javaHome,
 				},
-				Dependencies: project.Dependencies{
-					Registries: []project.Registry{{Name: "espresso-registry", Url: "https://github.com/Kerosene-Labs/espresso-registry/archive/refs/heads/main.zip"}},
-				},
+				Registries:   []project.Registry{{Name: "espresso-registry", Url: "https://github.com/Kerosene-Labs/espresso-registry/archive/refs/heads/main.zip"}},
+				Dependencies: []project.Dependency{},
 			}
 
 			// write some example code
@@ -176,7 +175,17 @@ func GetRegistryCommand() *cobra.Command {
 		Short:   "Query the registries for the given search term.",
 		Aliases: []string{"q"},
 		Run: func(cmd *cobra.Command, args []string) {
-			println("TODO")
+			// get the config
+			cfg, err := project.GetConfig()
+			if err != nil {
+				fmt.Printf("An error occurred while reading the config: %s\n", err)
+			}
+
+			// iterate over each registry, query it
+			for _, reg := range cfg.Registries {
+				dependency.GetRegistryPackages(reg)
+				// dependency.QueryRegistry(&reg)
+			}
 		},
 	}
 	query.Flags().StringP("term", "t", "", "Term to query by")
@@ -194,7 +203,7 @@ func GetRegistryCommand() *cobra.Command {
 			}
 
 			// iterate over each registry, invalidate it
-			for _, reg := range cfg.Dependencies.Registries {
+			for _, reg := range cfg.Registries {
 				fmt.Printf("Invalidating cache: %s\n", reg.Url)
 				err = dependency.InvalidateRegistryCache(&reg)
 				if err != nil {
@@ -203,7 +212,7 @@ func GetRegistryCommand() *cobra.Command {
 			}
 
 			// iterate over each registry, download the zip
-			for _, reg := range cfg.Dependencies.Registries {
+			for _, reg := range cfg.Registries {
 				fmt.Printf("Downloading archive: %s\n", reg.Url)
 				err = dependency.CacheRegistry(&reg)
 				if err != nil {
