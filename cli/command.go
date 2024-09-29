@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/fatih/color"
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"hlafaille.xyz/espresso/v0/core/project"
 	"hlafaille.xyz/espresso/v0/core/registry"
@@ -187,7 +189,7 @@ func GetRegistryCommand() *cobra.Command {
 			// iterate over each registry, get its packages
 			var filteredPkgs []registry.Package = []registry.Package{}
 			for _, reg := range cfg.Registries {
-				fmt.Printf("Checking '%s'\n", reg.Name)
+				color.Blue("Checking '%s'", reg.Name)
 				regPkgs, err := registry.GetRegistryPackages(reg)
 				if err != nil {
 					panic(fmt.Sprintf("An error occurred while fetching packages from the '%s' registry cache: %s", reg.Name, err))
@@ -195,17 +197,32 @@ func GetRegistryCommand() *cobra.Command {
 
 				// filter by name
 				for _, pkg := range regPkgs {
-					if term == "*" || strings.Contains(strings.ToLower(pkg.Name), strings.ToLower(term)) {
+					if term == "*" ||
+						strings.Contains(strings.ToLower(pkg.Name), strings.ToLower(term)) ||
+						strings.Contains(strings.ToLower(pkg.Description), strings.ToLower(term)) {
 						filteredPkgs = append(filteredPkgs, pkg)
 					}
 				}
 			}
 
 			// print out our packages
-			fmt.Printf("Found %v package(s):\n", len(filteredPkgs))
+			color.Cyan("Found %v package(s):", len(filteredPkgs))
+			data := [][]string{}
 			for _, filtered := range filteredPkgs {
-				fmt.Printf("%s : %s\n", filtered.Group, filtered.Name)
+				data = append(data, []string{
+					filtered.Group,
+					filtered.Name,
+					filtered.Versions[len(filtered.Versions)-1].Number,
+				})
 			}
+
+			table := tablewriter.NewWriter(os.Stdout)
+			table.SetHeader([]string{"Group", "Package", "Latest Version"})
+
+			for _, v := range data {
+				table.Append(v)
+			}
+			table.Render()
 		},
 	}
 	query.Flags().StringP("term", "t", "", "Term to query by")
@@ -219,7 +236,7 @@ func GetRegistryCommand() *cobra.Command {
 			// get the config
 			cfg, err := project.GetConfig()
 			if err != nil {
-				fmt.Printf("An error occurred while reading the config: %s\n", err)
+				ErrorQuit(fmt.Sprintf("An error occurred while reading the config: %s\n", err))
 			}
 
 			// iterate over each registry, invalidate it
@@ -227,7 +244,7 @@ func GetRegistryCommand() *cobra.Command {
 				fmt.Printf("Invalidating cache: %s\n", reg.Url)
 				err = registry.InvalidateRegistryCache(&reg)
 				if err != nil {
-					fmt.Printf("An error occurred while invalidaing cache(s): %s\n", err)
+					ErrorQuit(fmt.Sprintf("An error occurred while invalidaing cache(s): %s\n", err))
 				}
 			}
 
@@ -236,7 +253,7 @@ func GetRegistryCommand() *cobra.Command {
 				fmt.Printf("Downloading archive: %s\n", reg.Url)
 				err = registry.CacheRegistry(&reg)
 				if err != nil {
-					fmt.Printf("An error occurred while downloading the registry archive: %s\n", err)
+					ErrorQuit(fmt.Sprintf("An error occurred while downloading the registry archive: %s\n", err))
 				}
 			}
 		},
