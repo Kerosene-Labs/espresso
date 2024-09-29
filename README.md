@@ -12,7 +12,6 @@ Espresso is an experimental Java build tool for modern development.
 
 Getting started is simple. At its core, Espresso is a simple binary executable. You can include it in your repository or put it in your path.
 
-1. Place the `espresso` executable within your `PATH`
-  a. On Unix-like systems, this can be `/usr/bin`
+1. Place the `espresso` executable within your `PATH`. On Unix-like systems, this can be `/usr/local/bin`
 2. Run `espresso init --name "My First Espresso Project"`
 3. That's it! You can open `espresso.yml` and take a look around.
