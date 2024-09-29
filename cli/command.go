@@ -185,10 +185,10 @@ func GetRegistryCommand() *cobra.Command {
 			}
 
 			// iterate over each registry, get its packages
-			var filteredPkgs []registry.PackageDeclaration = []registry.PackageDeclaration{}
+			var filteredPkgs []registry.Package = []registry.Package{}
 			for _, reg := range cfg.Registries {
 				fmt.Printf("Checking '%s'\n", reg.Name)
-				regPkgs, err := registry.GetRegistryPackageDeclarations(reg)
+				regPkgs, err := registry.GetRegistryPackages(reg)
 				if err != nil {
 					panic(fmt.Sprintf("An error occurred while fetching packages from the '%s' registry cache: %s", reg.Name, err))
 				}
@@ -204,7 +204,7 @@ func GetRegistryCommand() *cobra.Command {
 			// print out our packages
 			fmt.Printf("Found %v package(s):\n", len(filteredPkgs))
 			for _, filtered := range filteredPkgs {
-				fmt.Printf("%s\n", filtered.Name)
+				fmt.Printf("%s : %s\n", filtered.Group, filtered.Name)
 			}
 		},
 	}

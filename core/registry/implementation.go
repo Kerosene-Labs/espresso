@@ -4,11 +4,22 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 	"hlafaille.xyz/espresso/v0/core/project"
 	"hlafaille.xyz/espresso/v0/core/util"
 )
+
+// Package is a high level abstraction on top of the raw filesystem based registry caching. Package represents
+// a package within the registry, but contains all required runtime information in a convenient struct.
+type Package struct {
+	Group       string
+	Name        string
+	Description string
+	Versions    []PackageVersionDeclaration
+	Declaration PackageDeclaration
+}
 
 // PackageVersionDeclaration is the file format of a package version within a cached registry package
 type PackageVersionDeclaration struct {
@@ -104,7 +115,7 @@ func CacheRegistry(reg *project.Registry) error {
 }
 
 // GetRegistryPackageDeclarations parses all package declarations within the cache for a given registry
-func GetRegistryPackageDeclarations(reg project.Registry) ([]PackageDeclaration, error) {
+func GetRegistryPackages(reg project.Registry) ([]Package, error) {
 	// get the package group paths
 	pkgGrpPths, err := walkRegistryLookup(reg)
 	if err != nil {
@@ -112,7 +123,7 @@ func GetRegistryPackageDeclarations(reg project.Registry) ([]PackageDeclaration,
 	}
 
 	// iterate over each package group path, walk the directory and read the files
-	var packages []PackageDeclaration = []PackageDeclaration{}
+	var pkgs []Package = []Package{}
 	for _, pkgGroupPth := range pkgGrpPths {
 		// walk this particular package group for package declarations
 		pkgDeclPaths, err := walkPackageGroup(pkgGroupPth)
@@ -129,12 +140,22 @@ func GetRegistryPackageDeclarations(reg project.Registry) ([]PackageDeclaration,
 			}
 
 			// get the unmarshalled file
-			unmarshalled, err := UnmarshalPackageDeclaration(string(declContent))
+			unmarshalledDecl, err := UnmarshalPackageDeclaration(string(declContent))
 			if err != nil {
 				return nil, err
 			}
-			packages = append(packages, *unmarshalled)
+
+			// create our high level package
+			splitPkgGrp := strings.Split(pkgGroupPth, "/")
+			pkg := Package{
+				Group:       splitPkgGrp[len(splitPkgGrp)-1],
+				Name:        unmarshalledDecl.Name,
+				Description: unmarshalledDecl.Description,
+				Versions:    unmarshalledDecl.Versions,
+				Declaration: *unmarshalledDecl,
+			}
+			pkgs = append(pkgs, pkg)
 		}
 	}
-	return packages, nil
+	return pkgs, nil
 }
