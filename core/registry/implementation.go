@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
-	"hlafaille.xyz/espresso/v0/core/project"
+	"hlafaille.xyz/espresso/v0/core/config"
 	"hlafaille.xyz/espresso/v0/core/util"
 )
 
@@ -20,7 +20,7 @@ type Package struct {
 	Description string
 	Versions    []PackageVersionDeclaration
 	Declaration PackageDeclaration
-	Registry    project.Registry
+	Registry    config.Registry
 }
 
 // PackageVersionDeclaration is the file format of a package version within a cached registry package
@@ -58,7 +58,7 @@ func MarshalPackageDeclaration(pkgDecl *PackageDeclaration) (string, error) {
 }
 
 // InvalidateRegistry invalidates a particular registry
-func InvalidateRegistryCache(reg *project.Registry) error {
+func InvalidateRegistryCache(reg *config.Registry) error {
 	// get our home dir
 	cachePath, err := GetRegistryCachePath(reg)
 	if err != nil {
@@ -71,7 +71,7 @@ func InvalidateRegistryCache(reg *project.Registry) error {
 }
 
 // CacheRegistry downloads a zip archive representing an espresso registry and extracts it to the proper directory
-func CacheRegistry(reg *project.Registry) error {
+func CacheRegistry(reg *config.Registry) error {
 	// get our cache path
 	cachePath, err := GetRegistryCachePath(reg)
 	if err != nil {
@@ -117,7 +117,7 @@ func CacheRegistry(reg *project.Registry) error {
 }
 
 // GetRegistryPackageDeclarations parses all package declarations within the cache for a given registry
-func GetRegistryPackages(reg project.Registry) ([]Package, error) {
+func GetRegistryPackages(reg config.Registry) ([]Package, error) {
 	// get the package group paths
 	pkgGrpPths, err := walkRegistryLookup(reg)
 	if err != nil {

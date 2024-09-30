@@ -14,7 +14,8 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"DavidAnson.vscode-markdownlint"
+				"DavidAnson.vscode-markdownlint",
+				"redhat.vscode-yaml"
 			]
 		}
 	}

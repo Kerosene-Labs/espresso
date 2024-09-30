@@ -3,12 +3,12 @@ package toolchain
 import (
 	"os"
 
-	"hlafaille.xyz/espresso/v0/core/project"
+	"hlafaille.xyz/espresso/v0/core/config"
 	"hlafaille.xyz/espresso/v0/core/util"
 )
 
 // GetBuildPath gets the absolute path to the build directory
-func GetBuildPath(cfg *project.ProjectConfig) (*string, error) {
+func GetBuildPath(cfg *config.ProjectConfig) (*string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, err
@@ -24,7 +24,7 @@ func GetBuildPath(cfg *project.ProjectConfig) (*string, error) {
 }
 
 // GetDistPath gets the absolute path to the dist directory
-func GetDistPath(cfg *project.ProjectConfig) (*string, error) {
+func GetDistPath(cfg *config.ProjectConfig) (*string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, err

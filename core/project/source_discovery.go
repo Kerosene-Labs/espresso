@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"hlafaille.xyz/espresso/v0/core/config"
 )
 
 // SourceFIle represents a .java source file on the filesystem
@@ -15,7 +17,7 @@ type SourceFile struct {
 
 // DiscoverSourceFiles iterates over the project's base package looking for .java files
 // TODO: make this a goroutine?
-func DiscoverSourceFiles(cfg *ProjectConfig) ([]SourceFile, error) {
+func DiscoverSourceFiles(cfg *config.ProjectConfig) ([]SourceFile, error) {
 	// get the source path
 	srcPath, err := GetSourcePath(cfg)
 	if err != nil {

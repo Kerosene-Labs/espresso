@@ -9,9 +9,12 @@ import (
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
+	"hlafaille.xyz/espresso/v0/core/config"
+	"hlafaille.xyz/espresso/v0/core/context"
 	"hlafaille.xyz/espresso/v0/core/dependency"
 	"hlafaille.xyz/espresso/v0/core/project"
 	"hlafaille.xyz/espresso/v0/core/registry"
+	"hlafaille.xyz/espresso/v0/core/service"
 	"hlafaille.xyz/espresso/v0/core/toolchain"
 	"hlafaille.xyz/espresso/v0/core/util"
 )
@@ -21,41 +24,7 @@ func GetCleanCommand() *cobra.Command {
 		Use:     "clean",
 		Short:   "Clean the build context",
 		Aliases: []string{"c"},
-		Run: func(cmd *cobra.Command, args []string) {
-			// get the config
-			cfg, err := project.GetConfig()
-			if err != nil {
-				fmt.Printf("An error occurred while reading the config: %s\n", err)
-			}
-
-			// get the build dir
-			buildPath, err := toolchain.GetBuildPath(cfg)
-			if err != nil {
-				fmt.Printf("An error occurred while getting the build path: %s\n", err)
-				return
-			}
-
-			// get the dist dir
-			distPath, err := toolchain.GetDistPath(cfg)
-			if err != nil {
-				fmt.Printf("An error occurred while getting the build path: %s\n", err)
-				return
-			}
-
-			// remove the build dir
-			err = os.RemoveAll(*buildPath)
-			if err != nil {
-				fmt.Printf("An error occurred while deleting the build path: %s\n", err)
-				return
-			}
-
-			// remove the dist dir
-			err = os.RemoveAll(*distPath)
-			if err != nil {
-				fmt.Printf("An error occurred while deleting the dist path: %s\n", err)
-				return
-			}
-		},
+		Run:     service.CleanWorkspace,
 	}
 	return root
 }
@@ -67,17 +36,24 @@ func GetBuildCommand() *cobra.Command {
 		Short:   "Build the project, outputting a distributable.",
 		Aliases: []string{"b"},
 		Run: func(cmd *cobra.Command, args []string) {
-			// get the config
-			cfg, err := project.GetConfig()
+			// get the environment context
+			ctx, err := context.GetEnvironmentContext()
 			if err != nil {
-				panic(fmt.Sprintf("An error occurred while reading the config: %s\n", err))
+				util.ErrorQuit("An error occurred while getting the environment context: %s", err)
 			}
-			color.Cyan("-- Building '%s', please ensure you are compliant with all dependency licenses\n", cfg.Name)
+
+			// get our project context
+			prjCtx, err := ctx.GetProjectContext()
+			if err != nil {
+				util.ErrorQuit("An error occurred while getting the project context: %s", err)
+			}
+
+			color.Cyan("-- Building '%s', please ensure you are compliant with all dependency licenses\n", prjCtx.Cfg.Name)
 
 			// discover source files
-			files, err := project.DiscoverSourceFiles(cfg)
+			files, err := project.DiscoverSourceFiles(prjCtx.Cfg)
 			if err != nil {
-				ErrorQuit(fmt.Sprintf("An error occurred while discovering source files: %s\n", err))
+				util.ErrorQuit(fmt.Sprintf("An error occurred while discovering source files: %s\n", err))
 			}
 
 			// run the compiler on each source file
@@ -87,41 +63,44 @@ func GetBuildCommand() *cobra.Command {
 				go func(f *project.SourceFile) {
 					defer wg.Done()
 					color.Cyan("-- Compiling: " + f.Path)
-					toolchain.CompileSourceFile(cfg, &value)
+					err := toolchain.CompileSourceFile(prjCtx.Cfg, &value)
+					if err != nil {
+						util.ErrorQuit("An error occurred while compiling a source file: %s\n", err)
+					}
 				}(&value)
 			}
 			wg.Wait()
 
 			// package the project
 			color.Cyan("-- Packaging distributable")
-			err = toolchain.PackageClasses(cfg)
+			err = toolchain.PackageClasses(prjCtx.Cfg)
 			if err != nil {
-				ErrorQuit(fmt.Sprintf("An error occurred while packaging the classes: %s\n", err))
+				util.ErrorQuit(fmt.Sprintf("An error occurred while packaging the classes: %s\n", err))
 			}
 			color.Blue("Finished packaging distributable")
 
 			// iterate over each dependency, resolve it and copy it
-			distPath, err := toolchain.GetDistPath(cfg)
+			distPath, err := toolchain.GetDistPath(prjCtx.Cfg)
 			if err != nil {
-				ErrorQuit(fmt.Sprintf("Unable to get dist path: %s", err))
+				util.ErrorQuit(fmt.Sprintf("Unable to get dist path: %s", err))
 			}
 			os.MkdirAll(*distPath+"/libs", 0755)
 			var depCopyWg sync.WaitGroup
 			color.Cyan("-- Copying packages to distributable")
-			for _, dep := range cfg.Dependencies {
+			for _, dep := range prjCtx.Cfg.Dependencies {
 				depCopyWg.Add(1)
 				go func() {
 					defer depCopyWg.Done()
 					color.Cyan("-- Beginning copy of '%s:%s' to distributable", dep.Group, dep.Name)
-					resolved, err := dependency.ResolveDependency(&dep, &cfg.Registries)
+					resolved, err := dependency.ResolveDependency(&dep, &prjCtx.Cfg.Registries)
 					if err != nil {
-						ErrorQuit(fmt.Sprintf("Unable to resolve dependency: %s", err))
+						util.ErrorQuit(fmt.Sprintf("Unable to resolve dependency: %s", err))
 					}
 
 					// calculate the should-be location of this jar locally
 					espressoPath, err := util.GetEspressoDirectoryPath()
 					if err != nil {
-						ErrorQuit(fmt.Sprintf("Unable to get the espresso home: %s", espressoPath))
+						util.ErrorQuit(fmt.Sprintf("Unable to get the espresso home: %s", espressoPath))
 					}
 					signature := registry.CalculatePackageSignature(resolved.Package, resolved.PackageVersion)
 					cachedPackageHome := espressoPath + "/cachedPackages" + signature + ".jar"
@@ -155,7 +134,7 @@ func GetInitCommand() *cobra.Command {
 			}
 
 			// ensure a proejct doesn't already exist
-			cfgExists, err := project.ConfigExists()
+			cfgExists, err := config.DoesExist()
 			if err != nil {
 				fmt.Println("Error occurred while ensuring a config doesn't already exist")
 				panic(err)
@@ -167,20 +146,20 @@ func GetInitCommand() *cobra.Command {
 			fmt.Printf("Creating '%s'\n", name)
 
 			// create a base config
-			cfg := project.ProjectConfig{
+			cfg := config.ProjectConfig{
 				Name: name,
-				Version: project.Version{
+				Version: config.Version{
 					Major:  0,
 					Minor:  1,
 					Patch:  0,
 					Hotfix: nil,
 				},
 				BasePackage: basePackage,
-				Toolchain: project.Toolchain{
+				Toolchain: config.Toolchain{
 					Path: *javaHome,
 				},
-				Registries:   []project.Registry{{Name: "espresso-registry", Url: "https://github.com/Kerosene-Labs/espresso-registry/archive/refs/heads/main.zip"}},
-				Dependencies: []project.Dependency{},
+				Registries:   []config.Registry{{Name: "espresso-registry", Url: "https://github.com/Kerosene-Labs/espresso-registry/archive/refs/heads/main.zip"}},
+				Dependencies: []config.Dependency{},
 			}
 
 			// write some example code
@@ -189,7 +168,7 @@ func GetInitCommand() *cobra.Command {
 
 			// persist the config
 			println("Persisting project configuration")
-			project.PersistConfig(&cfg)
+			config.Persist(&cfg)
 
 			println("Done.")
 		},
@@ -215,7 +194,7 @@ func GetRegistryCommand() *cobra.Command {
 			var term, _ = cmd.Flags().GetString("term")
 
 			// get the config
-			cfg, err := project.GetConfig()
+			cfg, err := config.GetConfig()
 			if err != nil {
 				panic(fmt.Sprintf("An error occurred while reading the config: %s\n", err))
 			}
@@ -267,27 +246,33 @@ func GetRegistryCommand() *cobra.Command {
 		Use:   "invalidate",
 		Short: "Invalidate and recache the declared registries.",
 		Run: func(cmd *cobra.Command, args []string) {
-			// get the config
-			cfg, err := project.GetConfig()
+			// get the environment context
+			ctx, err := context.GetEnvironmentContext()
 			if err != nil {
-				ErrorQuit(fmt.Sprintf("An error occurred while reading the config: %s\n", err))
+				util.ErrorQuit("An error occurred while getting the environment context: %s", err)
+			}
+
+			// get our project context
+			prjCtx, err := ctx.GetProjectContext()
+			if err != nil {
+				util.ErrorQuit("An error occurred while getting the project context: %s", err)
 			}
 
 			// iterate over each registry, invalidate it
-			for _, reg := range cfg.Registries {
+			for _, reg := range prjCtx.Cfg.Registries {
 				fmt.Printf("Invalidating cache: %s\n", reg.Url)
 				err = registry.InvalidateRegistryCache(&reg)
 				if err != nil {
-					ErrorQuit(fmt.Sprintf("An error occurred while invalidaing cache(s): %s\n", err))
+					util.ErrorQuit(fmt.Sprintf("An error occurred while invalidaing cache(s): %s\n", err))
 				}
 			}
 
 			// iterate over each registry, download the zip
-			for _, reg := range cfg.Registries {
+			for _, reg := range prjCtx.Cfg.Registries {
 				fmt.Printf("Downloading archive: %s\n", reg.Url)
 				err = registry.CacheRegistry(&reg)
 				if err != nil {
-					ErrorQuit(fmt.Sprintf("An error occurred while downloading the registry archive: %s\n", err))
+					util.ErrorQuit(fmt.Sprintf("An error occurred while downloading the registry archive: %s\n", err))
 				}
 			}
 		},
@@ -307,29 +292,35 @@ func GetDependencyCommand() *cobra.Command {
 		Short:   "Fetch dependencies from the appropriate registries, storing them within their caches for consumption at compile time.",
 		Aliases: []string{"s"},
 		Run: func(cmd *cobra.Command, args []string) {
-			// get the config
-			cfg, err := project.GetConfig()
+			// get the environment context
+			ctx, err := context.GetEnvironmentContext()
 			if err != nil {
-				ErrorQuit(fmt.Sprintf("An error occurred while reading the config: %s\n", err))
+				util.ErrorQuit("An error occurred while getting the environment context: %s", err)
+			}
+
+			// get our project context
+			prjCtx, err := ctx.GetProjectContext()
+			if err != nil {
+				util.ErrorQuit("An error occurred while getting the project context: %s", err)
 			}
 
 			// iterate over the dependencies
 			var wg sync.WaitGroup
-			for _, dep := range cfg.Dependencies {
+			for _, dep := range prjCtx.Cfg.Dependencies {
 				wg.Add(1)
 				go func() {
 					defer wg.Done()
 					displayStr := fmt.Sprintf("%s:%s:%s", dep.Group, dep.Name, project.GetVersionAsString(&dep.Version))
 					color.Cyan("[%s] Resolving", displayStr)
-					rdep, err := dependency.ResolveDependency(&dep, &cfg.Registries)
+					rdep, err := dependency.ResolveDependency(&dep, &prjCtx.Cfg.Registries)
 					if err != nil {
-						ErrorQuit(fmt.Sprintf("[%s] An error occurred while resolving dependencies: %s\n", displayStr, err))
+						util.ErrorQuit(fmt.Sprintf("[%s] An error occurred while resolving dependencies: %s\n", displayStr, err))
 					}
 
 					// cache the resolved dependency
 					err = dependency.CacheResolvedDependency(rdep)
 					if err != nil {
-						ErrorQuit(fmt.Sprintf("[%s] An error occurred while caching the resolved dependency: %s\n", displayStr, err))
+						util.ErrorQuit(fmt.Sprintf("[%s] An error occurred while caching the resolved dependency: %s\n", displayStr, err))
 					}
 					color.Green("[%s] Cached", displayStr)
 				}()

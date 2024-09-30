@@ -4,12 +4,12 @@ import (
 	"io/fs"
 	"path/filepath"
 
-	"hlafaille.xyz/espresso/v0/core/project"
+	"hlafaille.xyz/espresso/v0/core/config"
 	"hlafaille.xyz/espresso/v0/core/util"
 )
 
 // GetCachePath gets the full cache path from the registry (ex: /home/vscode/.espresso/registries/espresso-registry)
-func GetRegistryCachePath(reg *project.Registry) (string, error) {
+func GetRegistryCachePath(reg *config.Registry) (string, error) {
 	// get our home dir
 	espressoPath, err := util.GetEspressoDirectoryPath()
 	if err != nil {
@@ -20,7 +20,7 @@ func GetRegistryCachePath(reg *project.Registry) (string, error) {
 
 // GetRegistryCachePackagesLookupPath gets the full cache path of the registry package lookup
 // (ex: /home/vscode/.espresso/registries/espresso-registry/lookup/espresso-registry-main/packages)
-func GetRegistryCachePackagesLookupPath(reg *project.Registry) (string, error) {
+func GetRegistryCachePackagesLookupPath(reg *config.Registry) (string, error) {
 	regCachePath, err := GetRegistryCachePath(reg)
 	if err != nil {
 		return "", err
@@ -30,7 +30,7 @@ func GetRegistryCachePackagesLookupPath(reg *project.Registry) (string, error) {
 
 // walkRegistryLookup walks over a particular registry's lookup directory, (ex: lookup/espresso-registry-main)
 // and looks for group directories (ex: org.projectlombok)
-func walkRegistryLookup(reg project.Registry) ([]string, error) {
+func walkRegistryLookup(reg config.Registry) ([]string, error) {
 	// get the cache path
 	cachePath, err := GetRegistryCachePackagesLookupPath(&reg)
 	if err != nil {

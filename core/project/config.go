@@ -5,102 +5,11 @@ import (
 	"os"
 	"strings"
 
-	"gopkg.in/yaml.v3"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"hlafaille.xyz/espresso/v0/core/config"
 )
 
-// Dependency represents a particular dependency
-type Dependency struct {
-	Group   string  `yaml:"group"`
-	Name    string  `yaml:"name"`
-	Version Version `yaml:"version"`
-}
-
-// Registry represents a particular repository
-type Registry struct {
-	Name string `yaml:"name"`
-	Url  string `yaml:"url"`
-}
-
-// Toolchain represents the toolchain on the system
-type Toolchain struct {
-	Path string `yaml:"path"`
-}
-
-// ProjectVersion represents a semantic version number
-type Version struct {
-	Major  int64   `yaml:"major"`
-	Minor  int64   `yaml:"minor"`
-	Patch  int64   `yaml:"patch"`
-	Hotfix *string `yaml:"hotfix"`
-}
-
-// ProjectConfig represents an Espresso project
-type ProjectConfig struct {
-	Name         string       `yaml:"name"`
-	Version      Version      `yaml:"version"`
-	BasePackage  string       `yaml:"basePackage"`
-	Toolchain    Toolchain    `yaml:"toolchain"`
-	Dependencies []Dependency `yaml:"dependencies"`
-	Registries   []Registry   `yaml:"registries"`
-}
-
-// UnmarshalConfig marshals the given ProjectConfig to yml
-func UnmarshalConfig(cfgYml string) (*ProjectConfig, error) {
-	var cfg ProjectConfig
-	err := yaml.Unmarshal([]byte(cfgYml), &cfg)
-	if err != nil {
-		return nil, err
-	}
-	return &cfg, nil
-}
-
-// MarshalConfig marshals the given ProjectConfig to yml
-func MarshalConfig(cfg *ProjectConfig) (*string, error) {
-	data, err := yaml.Marshal(cfg)
-	if err != nil {
-		return nil, err
-	}
-	resp := string(data)
-	return &resp, nil
-}
-
-// GetConfig reads the config from the filesystem and returns a pointer to a ProjectConfig, or an error
-func GetConfig() (*ProjectConfig, error) {
-	// get the config path for this context
-	path, err := GetConfigPath()
-	if err != nil {
-		return nil, err
-	}
-
-	// read the file
-	file, err := os.ReadFile(*path)
-	if err != nil {
-		return nil, err
-	}
-
-	// unmarshal into a cfg struct
-	cfg, err := UnmarshalConfig(string(file))
-	if err != nil {
-		return nil, err
-	}
-	return cfg, nil
-}
-
-// ConfigExists gets if a config exists at the current directory
-func ConfigExists() (*bool, error) {
-	configPath, err := GetConfigPath()
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = os.Stat(*configPath)
-	resp := err == nil || !os.IsNotExist(err)
-	return &resp, nil
-}
-
 // WriteExampleCode is an internal function that writes example code to a newly created project
-func WriteExampleCode(cfg *ProjectConfig) error {
+func WriteExampleCode(cfg *config.ProjectConfig) error {
 	path, _ := GetSourcePath(cfg)
 	os.MkdirAll(*path, 0755)
 
@@ -127,62 +36,24 @@ public class Main {
 
 }
 
-// PersistConfig persists the given ProjectConfig to the filesystem
-func PersistConfig(cfg *ProjectConfig) error {
-	marshalData, err := MarshalConfig(cfg)
-	if err != nil {
-		return err
-	}
-
-	cfgPath, err := GetConfigPath()
-	if err != nil {
-		return err
-	}
-
-	// write the config
-	cfgExists, err := ConfigExists()
-	if err != nil {
-		return err
-	}
-
-	if *cfgExists {
-		file, err := os.Open(*cfgPath)
-		if err != nil {
-			return err
-		}
-		file.WriteString(*marshalData)
-		defer file.Close()
-
-	} else {
-		file, err := os.Create(*cfgPath)
-		if err != nil {
-			return err
-		}
-		file.WriteString(*marshalData)
-		defer file.Close()
-	}
-
-	return nil
-}
-
 // GetConfigPath gets the absolute path to the config file
-func GetConfigPath() (*string, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
+// func GetConfigPath() (*string, error) {
+// 	wd, err := os.Getwd()
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	if util.IsDebugMode() {
-		path := wd + "/ESPRESSO_DEBUG" + "/espresso.yml"
-		return &path, nil
-	} else {
-		path := wd + "/espresso.yml"
-		return &path, nil
-	}
-}
+// 	if util.IsDebugMode() {
+// 		path := wd + "/ESPRESSO_DEBUG" + "/espresso.yml"
+// 		return &path, nil
+// 	} else {
+// 		path := wd + "/espresso.yml"
+// 		return &path, nil
+// 	}
+// }
 
 // GetVersionAsString gets a project version as a string.
-func GetVersionAsString(version *Version) string {
+func GetVersionAsString(version *config.Version) string {
 	if version == nil {
 		panic("version is nil")
 	}
