@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"os"
@@ -32,7 +33,7 @@ type PackageVersionDeclaration struct {
 
 // PackageDeclaration is the file format of a package declaration
 type PackageDeclaration struct {
-	Name        string                      `yaml:"name"`
+	Name        string
 	Description string                      `yaml:"description"`
 	Versions    []PackageVersionDeclaration `yaml:"versions"`
 }
@@ -103,12 +104,12 @@ func CacheRegistry(reg *project.Registry) error {
 	util.Unzip(cachePath+"/archive.zip", cachePath+"/lookup")
 
 	// check if the registry lookup contains a dependencies folder
-	doesDepsExist, err := util.DoesPathExist(cachePath + "/lookup/espresso-registry-main/dependencies")
+	doesDepsExist, err := util.DoesPathExist(cachePath + "/lookup/espresso-registry-main/packages")
 	if err != nil {
 		fmt.Printf("An error occurred while reading the registry's lookup directory: %s\n", err)
 	}
 	if !doesDepsExist {
-		fmt.Println("An eror occurred: this registry's lookup appears invalid: no dependencies directory")
+		fmt.Println("An eror occurred: this registry's lookup appears invalid: no packages directory")
 	}
 
 	fmt.Println("Done")
@@ -146,6 +147,10 @@ func GetRegistryPackages(reg project.Registry) ([]Package, error) {
 				return nil, err
 			}
 
+			// set our name
+			split := strings.Split(pkgDeclPath, "/")
+			unmarshalledDecl.Name = strings.TrimSuffix(split[len(split)-1], ".yml")
+
 			// create our high level package
 			splitPkgGrp := strings.Split(pkgGroupPth, "/")
 			pkg := Package{
@@ -162,9 +167,13 @@ func GetRegistryPackages(reg project.Registry) ([]Package, error) {
 	return pkgs, nil
 }
 
-// GenerateSignature generates a unique signature of a package. This can be used to uniquely reference artifacts across registries.
-func GenerateSignature(dep *Package) {
-
+// GenerateSignature generates a unique signature of a package and version. This can be used to uniquely
+// reference a local copy of a packages across registries.
+func CalculatePackageSignature(dep *Package, version *PackageVersionDeclaration) string {
+	if dep == nil || version == nil {
+		panic("dep or version was nil")
+	}
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf("%s:%s:%s", dep.Group, dep.Name, version.Number))))
 }
 
 // FilterRegistryPackagesByGroup filters a slice of Packages by a Group

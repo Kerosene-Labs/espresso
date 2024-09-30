@@ -8,5 +8,5 @@ func GetEspressoDirectoryPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return user.HomeDir, nil
+	return user.HomeDir + "/.espresso", nil
 }

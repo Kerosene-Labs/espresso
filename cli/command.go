@@ -282,9 +282,19 @@ func GetDependencyCommand() *cobra.Command {
 
 			// iterate over the dependencies
 			for _, dep := range cfg.Dependencies {
-				color.Cyan("Looking for '%s:%s:%s'...", dep.Group, dep.Name, dep.Version)
-				color.Blue("Not found, fetching")
-				dependency.FetchDependency()
+				color.Cyan("Looking for '%s:%s:%s'...", dep.Group, dep.Name, project.GetVersionAsString(&dep.Version))
+				color.Blue("Not found, fetching") // todo check if this cached package already exists on the filesystem
+				rdep, err := dependency.ResolveDependency(&dep, &cfg.Registries)
+				if err != nil {
+					ErrorQuit(fmt.Sprintf("An error occurred while resolving dependencies: %s\n", err))
+				}
+
+				// cache the resolved dependency
+				err = dependency.CacheResolvedDependency(rdep)
+				if err != nil {
+					ErrorQuit(fmt.Sprintf("An error occurred while caching the resolved dependency: %s\n", err))
+				}
+
 			}
 		},
 	}

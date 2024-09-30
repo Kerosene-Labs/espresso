@@ -1,6 +1,7 @@
 package project
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -178,4 +179,16 @@ func GetConfigPath() (*string, error) {
 		path := wd + "/espresso.yml"
 		return &path, nil
 	}
+}
+
+// GetVersionAsString gets a project version as a string.
+func GetVersionAsString(version *Version) string {
+	if version == nil {
+		panic("version is nil")
+	}
+	versionString := fmt.Sprintf("%d.%d.%d", version.Major, version.Minor, version.Patch)
+	if version.Hotfix != nil {
+		versionString += *version.Hotfix
+	}
+	return versionString
 }

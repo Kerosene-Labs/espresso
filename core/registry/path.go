@@ -15,34 +15,35 @@ func GetRegistryCachePath(reg *project.Registry) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return wd + "/.espresso/registries/" + reg.Name, nil
+	return wd + "/.espresso/registries" + reg.Name, nil
 }
 
-// GetRegistryCacheDependenciesPath
-func GetRegistryCacheDependenciesPath(reg *project.Registry) (string, error) {
-	cachePath, err := GetRegistryCachePath(reg)
+// GetRegistryCachePackagesLookupPath gets the full cache path of the registry package lookup
+// (ex: /home/vscode/.espresso/registries/espresso-registry/lookup/espresso-registry-main/packages)
+func GetRegistryCachePackagesLookupPath(reg *project.Registry) (string, error) {
+	regCachePath, err := GetRegistryCachePath(reg)
 	if err != nil {
 		return "", err
 	}
-	return cachePath + "/espresso-registry-main/dependencies", nil
+	return regCachePath + "/lookup/espresso-registry-main/packages", nil
 }
 
 // walkRegistryLookup walks over a particular registry's lookup directory, (ex: lookup/espresso-registry-main)
 // and looks for group directories (ex: org.projectlombok)
 func walkRegistryLookup(reg project.Registry) ([]string, error) {
 	// get the cache path
-	cachePath, err := GetRegistryCachePath(&reg)
+	cachePath, err := GetRegistryCachePackagesLookupPath(&reg)
 	if err != nil {
 		return []string{}, err
 	}
 
 	// walk the directory for all groupId's
 	var dirs []string = []string{}
-	err = filepath.Walk(cachePath+"/lookup/espresso-registry-main/dependencies", func(path string, info fs.FileInfo, err error) error {
+	err = filepath.Walk(cachePath, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if info.Name() == "dependencies" {
+		if info.Name() == "packages" {
 			return nil
 		}
 		if info.IsDir() {

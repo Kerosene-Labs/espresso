@@ -1,4 +1,3 @@
-name: Spring Web
 description:  Spring Web provides integration features such as multipart file upload functionality and the initialization of the IoC container using Servlet listeners and a web-oriented application context. It also contains an HTTP client and the web-related parts of Spring remote support. 
 versions:
   - number: 6.1.3
