@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"hlafaille.xyz/espresso/v0/core/config"
-	"hlafaille.xyz/espresso/v0/core/project"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/config"
+	"kerosenelabs.com/espresso/core/project"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // InitializeProject is a service function for initializing a new project

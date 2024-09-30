@@ -4,8 +4,8 @@ import (
 	"errors"
 	"os"
 
-	"hlafaille.xyz/espresso/v0/core/registry"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/registry"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // CacheResolvedDependency fetches the resolved dependency from the internet

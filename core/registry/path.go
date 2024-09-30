@@ -4,8 +4,8 @@ import (
 	"io/fs"
 	"path/filepath"
 
-	"hlafaille.xyz/espresso/v0/core/config"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/config"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // GetCachePath gets the full cache path from the registry (ex: /home/vscode/.espresso/registries/espresso-registry)

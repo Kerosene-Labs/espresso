@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
-	"hlafaille.xyz/espresso/v0/core/config"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/config"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // Package is a high level abstraction on top of the raw filesystem based registry caching. Package represents

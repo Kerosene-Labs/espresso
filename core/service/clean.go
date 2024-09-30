@@ -4,9 +4,9 @@ import (
 	"os"
 
 	"github.com/fatih/color"
-	"hlafaille.xyz/espresso/v0/core/context"
-	"hlafaille.xyz/espresso/v0/core/toolchain"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/context"
+	"kerosenelabs.com/espresso/core/toolchain"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // CleanWorkspace is a service function to clean the current workspace.

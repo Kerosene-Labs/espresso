@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"hlafaille.xyz/espresso/v0/core/config"
+	"kerosenelabs.com/espresso/core/config"
 )
 
 // WriteExampleCode is an internal function that writes example code to a newly created project

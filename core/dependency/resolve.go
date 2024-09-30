@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"hlafaille.xyz/espresso/v0/core/config"
-	"hlafaille.xyz/espresso/v0/core/project"
-	"hlafaille.xyz/espresso/v0/core/registry"
+	"kerosenelabs.com/espresso/core/config"
+	"kerosenelabs.com/espresso/core/project"
+	"kerosenelabs.com/espresso/core/registry"
 )
 
 // ResolvedDependency represents a match between a project dependency and a registry package.

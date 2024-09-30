@@ -3,7 +3,7 @@ package dependency
 import (
 	"os"
 
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // EnsurePackagesDirectory ensures the packages directory exists under the given registry cache.

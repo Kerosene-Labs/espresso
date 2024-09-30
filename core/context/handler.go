@@ -3,7 +3,7 @@ package context
 import (
 	"os"
 
-	"hlafaille.xyz/espresso/v0/core/config"
+	"kerosenelabs.com/espresso/core/config"
 )
 
 // singular reference to the environment context for this instance
@@ -26,8 +26,11 @@ func (eCtx EnvironmentContext) GetProjectContext() (*ProjectContext, error) {
 	if eCtx.prjCtx != nil {
 		return eCtx.prjCtx, nil
 	}
-	// TODO build our loading the project context
-	return nil, nil
+	cfg, err := config.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+	return &ProjectContext{Cfg: cfg}, nil
 }
 
 // GetEnvironmentContext returns a pointer to context for the current environment.

@@ -7,10 +7,10 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
-	"hlafaille.xyz/espresso/v0/core/config"
-	"hlafaille.xyz/espresso/v0/core/context"
-	"hlafaille.xyz/espresso/v0/core/registry"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/config"
+	"kerosenelabs.com/espresso/core/context"
+	"kerosenelabs.com/espresso/core/registry"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // QueryRegistries is a service function for querying all registries declared within a project

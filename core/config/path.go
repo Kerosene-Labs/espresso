@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // GetConfigPath gets the absolute path to the config file

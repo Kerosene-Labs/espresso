@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"hlafaille.xyz/espresso/v0/core/config"
+	"kerosenelabs.com/espresso/core/config"
 )
 
 // SourceFIle represents a .java source file on the filesystem

@@ -2,8 +2,21 @@ package cli
 
 import (
 	"github.com/spf13/cobra"
-	"hlafaille.xyz/espresso/v0/core/service"
+	"kerosenelabs.com/espresso/core/service"
 )
+
+// GetVersionCommand gets the prepared "version" command for cobra
+func GetVersionCommand() *cobra.Command {
+	var root = &cobra.Command{
+		Use:     "version",
+		Short:   "Print the version of Espresso",
+		Aliases: []string{"v"},
+		Run: func(cmd *cobra.Command, args []string) {
+			service.PrintVersion()
+		},
+	}
+	return root
+}
 
 // GetCleanCommand gets the prepared "clean" command for cobra
 func GetCleanCommand() *cobra.Command {

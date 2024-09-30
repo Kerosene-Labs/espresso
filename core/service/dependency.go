@@ -5,10 +5,10 @@ import (
 	"sync"
 
 	"github.com/fatih/color"
-	"hlafaille.xyz/espresso/v0/core/context"
-	"hlafaille.xyz/espresso/v0/core/dependency"
-	"hlafaille.xyz/espresso/v0/core/project"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/context"
+	"kerosenelabs.com/espresso/core/dependency"
+	"kerosenelabs.com/espresso/core/project"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // SyncDependencies is a service function to iterate over each dependency and save it within the user's espresso cached packages

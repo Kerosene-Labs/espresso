@@ -4,9 +4,9 @@ import (
 	"errors"
 	"os/exec"
 
-	"hlafaille.xyz/espresso/v0/core/config"
-	"hlafaille.xyz/espresso/v0/core/project"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/config"
+	"kerosenelabs.com/espresso/core/project"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // CompileSourceFile compiles the sourcefile with the given project toolchain

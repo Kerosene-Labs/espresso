@@ -4,8 +4,8 @@ import (
 	"os"
 	"strings"
 
-	"hlafaille.xyz/espresso/v0/core/config"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/config"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // GetProjectPath gets the source path from the given ProjectConfig

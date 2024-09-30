@@ -5,8 +5,8 @@ import (
 	"os"
 	"os/exec"
 
-	"hlafaille.xyz/espresso/v0/core/config"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/config"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // GenerateManifest generates a JVM manifest

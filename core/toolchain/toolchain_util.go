@@ -3,8 +3,8 @@ package toolchain
 import (
 	"os"
 
-	"hlafaille.xyz/espresso/v0/core/config"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/config"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // GetBuildPath gets the absolute path to the build directory
