@@ -4,13 +4,13 @@ import (
 	"os"
 
 	"github.com/fatih/color"
-	"github.com/spf13/cobra"
 	"hlafaille.xyz/espresso/v0/core/context"
 	"hlafaille.xyz/espresso/v0/core/toolchain"
 	"hlafaille.xyz/espresso/v0/core/util"
 )
 
-func CleanWorkspace(cmd *cobra.Command, args []string) {
+// CleanWorkspace is a service function to clean the current workspace.
+func CleanWorkspace() {
 	// get the environment context
 	ctx, err := context.GetEnvironmentContext()
 	if err != nil {
