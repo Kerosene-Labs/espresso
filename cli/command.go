@@ -72,14 +72,13 @@ func GetBuildCommand() *cobra.Command {
 			if err != nil {
 				panic(fmt.Sprintf("An error occurred while reading the config: %s\n", err))
 			}
-			fmt.Printf("Building '%s', please ensure you are compliant with all dependency licenses\n", cfg.Name)
+			color.Cyan("-- Building '%s', please ensure you are compliant with all dependency licenses\n", cfg.Name)
 
 			// discover source files
 			files, err := project.DiscoverSourceFiles(cfg)
 			if err != nil {
-				panic(fmt.Sprintf("An error occurred while discovering source files: %s\n", err))
+				ErrorQuit(fmt.Sprintf("An error occurred while discovering source files: %s\n", err))
 			}
-			fmt.Printf("Discovered %d source file(s)\n", len(files))
 
 			// run the compiler on each source file
 			var wg sync.WaitGroup
@@ -87,19 +86,19 @@ func GetBuildCommand() *cobra.Command {
 				wg.Add(1)
 				go func(f *project.SourceFile) {
 					defer wg.Done()
-					println("Compiling: " + f.Path)
+					color.Cyan("-- Compiling: " + f.Path)
 					toolchain.CompileSourceFile(cfg, &value)
 				}(&value)
 			}
 			wg.Wait()
 
 			// package the project
-			println("Packaging")
+			color.Cyan("-- Packaging distributable")
 			err = toolchain.PackageClasses(cfg)
 			if err != nil {
-				fmt.Printf("An error occurred while packaging the classes: %s\n", err)
-				return
+				ErrorQuit(fmt.Sprintf("An error occurred while packaging the classes: %s\n", err))
 			}
+			color.Blue("Finished packaging distributable")
 
 			// iterate over each dependency, resolve it and copy it
 			distPath, err := toolchain.GetDistPath(cfg)
@@ -108,10 +107,12 @@ func GetBuildCommand() *cobra.Command {
 			}
 			os.MkdirAll(*distPath+"/libs", 0755)
 			var depCopyWg sync.WaitGroup
+			color.Cyan("-- Copying packages to distributable")
 			for _, dep := range cfg.Dependencies {
 				depCopyWg.Add(1)
 				go func() {
 					defer depCopyWg.Done()
+					color.Cyan("-- Beginning copy of '%s:%s' to distributable", dep.Group, dep.Name)
 					resolved, err := dependency.ResolveDependency(&dep, &cfg.Registries)
 					if err != nil {
 						ErrorQuit(fmt.Sprintf("Unable to resolve dependency: %s", err))
@@ -120,7 +121,7 @@ func GetBuildCommand() *cobra.Command {
 					// calculate the should-be location of this jar locally
 					espressoPath, err := util.GetEspressoDirectoryPath()
 					if err != nil {
-						ErrorQuit(fmt.Sprintf("Unable to get the espresso home", espressoPath))
+						ErrorQuit(fmt.Sprintf("Unable to get the espresso home: %s", espressoPath))
 					}
 					signature := registry.CalculatePackageSignature(resolved.Package, resolved.PackageVersion)
 					cachedPackageHome := espressoPath + "/cachedPackages" + signature + ".jar"
@@ -128,11 +129,11 @@ func GetBuildCommand() *cobra.Command {
 					// copy the file
 					util.CopyFile(cachedPackageHome, *distPath+"/libs")
 
-					color.Green("Copied %s", dep.Name)
+					color.Blue("Copied '%s:%s' to distributable", dep.Group, dep.Name)
 				}()
 			}
 			depCopyWg.Wait()
-			println("Done")
+			color.Green("Done!")
 		},
 	}
 	return root
