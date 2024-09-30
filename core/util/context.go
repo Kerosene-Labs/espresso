@@ -24,7 +24,7 @@ func GetJavaHome() (*string, error) {
 	return &path, nil
 }
 
-func DoesFileExist(path string) (bool, error) {
+func DoesPathExist(path string) (bool, error) {
 	_, err := os.Stat(path)
 	resp := err == nil || !os.IsNotExist(err)
 	return resp, nil

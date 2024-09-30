@@ -11,11 +11,11 @@ import (
 // GetCachePath gets the full cache path from the registry (ex: /home/vscode/.espresso/registries/espresso-registry)
 func GetRegistryCachePath(reg *project.Registry) (string, error) {
 	// get our home dir
-	homeDir, err := os.UserHomeDir()
+	wd, err := os.Getwd()
 	if err != nil {
 		return "", err
 	}
-	return homeDir + "/.espresso/registries/" + reg.Name, nil
+	return wd + "/.espresso/registries/" + reg.Name, nil
 }
 
 // GetRegistryCacheDependenciesPath

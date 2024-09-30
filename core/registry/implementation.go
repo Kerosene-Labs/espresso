@@ -19,6 +19,7 @@ type Package struct {
 	Description string
 	Versions    []PackageVersionDeclaration
 	Declaration PackageDeclaration
+	Registry    project.Registry
 }
 
 // PackageVersionDeclaration is the file format of a package version within a cached registry package
@@ -77,7 +78,7 @@ func CacheRegistry(reg *project.Registry) error {
 	}
 
 	// if the cache exists, error out
-	doesExist, err := util.DoesFileExist(cachePath)
+	doesExist, err := util.DoesPathExist(cachePath)
 	if err != nil {
 		return err
 	}
@@ -102,7 +103,7 @@ func CacheRegistry(reg *project.Registry) error {
 	util.Unzip(cachePath+"/archive.zip", cachePath+"/lookup")
 
 	// check if the registry lookup contains a dependencies folder
-	doesDepsExist, err := util.DoesFileExist(cachePath + "/lookup/espresso-registry-main/dependencies")
+	doesDepsExist, err := util.DoesPathExist(cachePath + "/lookup/espresso-registry-main/dependencies")
 	if err != nil {
 		fmt.Printf("An error occurred while reading the registry's lookup directory: %s\n", err)
 	}
@@ -153,9 +154,26 @@ func GetRegistryPackages(reg project.Registry) ([]Package, error) {
 				Description: unmarshalledDecl.Description,
 				Versions:    unmarshalledDecl.Versions,
 				Declaration: *unmarshalledDecl,
+				Registry:    reg,
 			}
 			pkgs = append(pkgs, pkg)
 		}
 	}
 	return pkgs, nil
 }
+
+// GenerateSignature generates a unique signature of a package. This can be used to uniquely reference artifacts across registries.
+func GenerateSignature(dep *Package) {
+
+}
+
+// FilterRegistryPackagesByGroup filters a slice of Packages by a Group
+// func FilterPackageByVersion(pkgs []Package) []Package {
+// 	var filtered []Package = []Package{}
+// 	for _, pkg := range pkgs {
+// 		if pkg.Group == group {
+// 			filtered = append(filtered, pkg)
+// 		}
+// 	}
+// 	return filtered
+// }

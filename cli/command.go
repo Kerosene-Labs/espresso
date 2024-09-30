@@ -9,6 +9,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
+	"hlafaille.xyz/espresso/v0/core/dependency"
 	"hlafaille.xyz/espresso/v0/core/project"
 	"hlafaille.xyz/espresso/v0/core/registry"
 	"hlafaille.xyz/espresso/v0/core/toolchain"
@@ -229,9 +230,9 @@ func GetRegistryCommand() *cobra.Command {
 	query.MarkFlagRequired("term")
 	root.AddCommand(query)
 
-	var sync = &cobra.Command{
-		Use:   "pull",
-		Short: "Sync the dependencies declared in the project configuration with dependencies on the local filesystem.",
+	var pull = &cobra.Command{
+		Use:   "invalidate",
+		Short: "Invalidate and recache the declared registries.",
 		Run: func(cmd *cobra.Command, args []string) {
 			// get the config
 			cfg, err := project.GetConfig()
@@ -258,7 +259,7 @@ func GetRegistryCommand() *cobra.Command {
 			}
 		},
 	}
-	root.AddCommand(sync)
+	root.AddCommand(pull)
 	return root
 }
 
@@ -273,7 +274,18 @@ func GetDependencyCommand() *cobra.Command {
 		Short:   "Fetch dependencies from the appropriate registries, storing them within their caches for consumption at compile time.",
 		Aliases: []string{"s"},
 		Run: func(cmd *cobra.Command, args []string) {
-			println("TODO")
+			// get the config
+			cfg, err := project.GetConfig()
+			if err != nil {
+				ErrorQuit(fmt.Sprintf("An error occurred while reading the config: %s\n", err))
+			}
+
+			// iterate over the dependencies
+			for _, dep := range cfg.Dependencies {
+				color.Cyan("Looking for '%s:%s:%s'...", dep.Group, dep.Name, dep.Version)
+				color.Blue("Not found, fetching")
+				dependency.FetchDependency()
+			}
 		},
 	}
 	root.AddCommand(sync)

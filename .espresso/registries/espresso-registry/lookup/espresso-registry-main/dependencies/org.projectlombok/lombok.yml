@@ -1,0 +1,7 @@
+name: Project Lombok
+description: Lombok is a Java library that provides annotations to simplify Java development by automating the generation of boilerplate code. Key features include automatic generation of getters, setters, equals, hashCode, and toString methods, as well as a facility for automatic resource management. It aims to reduce the amount of manual coding, thereby streamlining the codebase and reducing potential for errors. 
+versions:
+  - number: 1.18.34
+    artifactUrl: https://repo1.maven.org/maven2/org/projectlombok/lombok/1.18.34/lombok-1.18.34.jar
+    isAnnotationProcessor: true
+    transientDependencies: []

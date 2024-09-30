@@ -10,9 +10,9 @@ import (
 
 // Dependency represents a particular dependency
 type Dependency struct {
-	GroupID    string `yaml:"groupId"`
-	ArtifactID string `yaml:"artifactId"`
-	Version    string `yaml:"version"`
+	Group   string  `yaml:"group"`
+	Name    string  `yaml:"name"`
+	Version Version `yaml:"version"`
 }
 
 // Registry represents a particular repository
