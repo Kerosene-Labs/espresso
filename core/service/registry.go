@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
@@ -79,20 +80,34 @@ func InvalidateRegistryCaches() {
 	}
 
 	// iterate over each registry, invalidate it
+	var invalWg sync.WaitGroup
 	for _, reg := range prjCtx.Cfg.Registries {
-		fmt.Printf("Invalidating cache: %s\n", reg.Url)
-		err = registry.InvalidateRegistryCache(&reg)
-		if err != nil {
-			util.ErrorQuit(fmt.Sprintf("An error occurred while invalidaing cache(s): %s\n", err))
-		}
+		invalWg.Add(1)
+		go func() {
+			defer invalWg.Done()
+			color.Cyan("-- [%s] Invalidating cache...", reg.Name)
+			err = registry.InvalidateRegistryCache(&reg)
+			if err != nil {
+				util.ErrorQuit(fmt.Sprintf("An error occurred while invalidaing cache(s): %s\n", err))
+			}
+			color.Blue("-- [%s] Invalidated", reg.Name)
+		}()
 	}
+	invalWg.Wait()
 
 	// iterate over each registry, download the zip
+	var dlWg sync.WaitGroup
 	for _, reg := range prjCtx.Cfg.Registries {
-		fmt.Printf("Downloading archive: %s\n", reg.Url)
-		err = registry.CacheRegistry(&reg)
-		if err != nil {
-			util.ErrorQuit(fmt.Sprintf("An error occurred while downloading the registry archive: %s\n", err))
-		}
+		dlWg.Add(1)
+		go func() {
+			defer dlWg.Done()
+			color.Cyan("-- [%s] Downloading archive", reg.Name)
+			err = registry.CacheRegistry(&reg)
+			if err != nil {
+				util.ErrorQuit(fmt.Sprintf("An error occurred while downloading the registry archive: %s\n", err))
+			}
+			color.Blue("[%s] Finished caching", reg.Name)
+		}()
 	}
+	dlWg.Wait()
 }

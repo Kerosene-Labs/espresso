@@ -32,7 +32,7 @@ func BuildProject() {
 		util.ErrorQuit("An error occurred while getting the project context: %s", err)
 	}
 
-	color.Cyan("-- Building '%s', please ensure you are compliant with all dependency licenses\n", prjCtx.Cfg.Name)
+	color.Cyan("-- [%s] Beginning build, please ensure you are compliant with all dependency licenses\n", prjCtx.Cfg.Name)
 
 	// discover source files
 	files, err := project.DiscoverSourceFiles(prjCtx.Cfg)
@@ -41,16 +41,17 @@ func BuildProject() {
 	}
 
 	// run the compiler on each source file
+	color.Cyan("-- Compiling")
 	var wg sync.WaitGroup
 	for _, value := range files {
 		wg.Add(1)
 		go func(f *project.SourceFile) {
 			defer wg.Done()
-			color.Cyan("-- Compiling: " + f.Path)
 			err := toolchain.CompileSourceFile(prjCtx.Cfg, &value)
 			if err != nil {
 				util.ErrorQuit("An error occurred while compiling a source file: %s\n", err)
 			}
+			color.Blue("Compiled: " + f.Path)
 		}(&value)
 	}
 	wg.Wait()
@@ -70,7 +71,7 @@ func BuildProject() {
 	}
 	os.MkdirAll(*distPath+"/libs", 0755)
 	var depCopyWg sync.WaitGroup
-	color.Cyan("-- Copying packages to distributable")
+	color.Cyan("-- Copying dependency packages to distributable")
 	for _, dep := range prjCtx.Cfg.Dependencies {
 		depCopyWg.Add(1)
 		go func() {

@@ -104,7 +104,6 @@ func CacheRegistry(reg *config.Registry) error {
 	}
 
 	// extract the archive
-	fmt.Println("Extracting")
 	util.Unzip(cachePath+"/archive.zip", cachePath+"/lookup")
 
 	// check if the registry lookup contains a dependencies folder
@@ -116,7 +115,6 @@ func CacheRegistry(reg *config.Registry) error {
 		fmt.Println("An eror occurred: this registry's lookup appears invalid: no packages directory")
 	}
 
-	fmt.Println("Done")
 	return nil
 }
 
