@@ -56,3 +56,33 @@ func Unzip(src string, dest string) error {
 	}
 	return nil
 }
+
+func CopyFile(src, dst string) error {
+	// Open the source file
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("could not open source file: %w", err)
+	}
+	defer sourceFile.Close()
+
+	// Create the destination file
+	destinationFile, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("could not create destination file: %w", err)
+	}
+	defer destinationFile.Close()
+
+	// Copy the file contents from source to destination
+	_, err = io.Copy(destinationFile, sourceFile)
+	if err != nil {
+		return fmt.Errorf("error while copying file: %w", err)
+	}
+
+	// Optionally, sync to ensure everything is flushed to disk
+	err = destinationFile.Sync()
+	if err != nil {
+		return fmt.Errorf("error syncing file: %w", err)
+	}
+
+	return nil
+}
