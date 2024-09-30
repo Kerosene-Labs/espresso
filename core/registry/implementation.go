@@ -175,14 +175,3 @@ func CalculatePackageSignature(dep *Package, version *PackageVersionDeclaration)
 	}
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf("%s:%s:%s", dep.Group, dep.Name, version.Number))))
 }
-
-// FilterRegistryPackagesByGroup filters a slice of Packages by a Group
-// func FilterPackageByVersion(pkgs []Package) []Package {
-// 	var filtered []Package = []Package{}
-// 	for _, pkg := range pkgs {
-// 		if pkg.Group == group {
-// 			filtered = append(filtered, pkg)
-// 		}
-// 	}
-// 	return filtered
-// }

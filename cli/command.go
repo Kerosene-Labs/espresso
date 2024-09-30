@@ -100,6 +100,38 @@ func GetBuildCommand() *cobra.Command {
 				fmt.Printf("An error occurred while packaging the classes: %s\n", err)
 				return
 			}
+
+			// iterate over each dependency, resolve it and copy it
+			distPath, err := toolchain.GetDistPath(cfg)
+			if err != nil {
+				ErrorQuit(fmt.Sprintf("Unable to get dist path: %s", err))
+			}
+			os.MkdirAll(*distPath+"/libs", 0755)
+			var depCopyWg sync.WaitGroup
+			for _, dep := range cfg.Dependencies {
+				depCopyWg.Add(1)
+				go func() {
+					defer depCopyWg.Done()
+					resolved, err := dependency.ResolveDependency(&dep, &cfg.Registries)
+					if err != nil {
+						ErrorQuit(fmt.Sprintf("Unable to resolve dependency: %s", err))
+					}
+
+					// calculate the should-be location of this jar locally
+					espressoPath, err := util.GetEspressoDirectoryPath()
+					if err != nil {
+						ErrorQuit(fmt.Sprintf("Unable to get the espresso home", espressoPath))
+					}
+					signature := registry.CalculatePackageSignature(resolved.Package, resolved.PackageVersion)
+					cachedPackageHome := espressoPath + "/cachedPackages" + signature + ".jar"
+
+					// copy the file
+					util.CopyFile(cachedPackageHome, *distPath+"/libs")
+
+					color.Green("Copied %s", dep.Name)
+				}()
+			}
+			depCopyWg.Wait()
 			println("Done")
 		},
 	}
@@ -281,21 +313,27 @@ func GetDependencyCommand() *cobra.Command {
 			}
 
 			// iterate over the dependencies
+			var wg sync.WaitGroup
 			for _, dep := range cfg.Dependencies {
-				color.Cyan("Looking for '%s:%s:%s'...", dep.Group, dep.Name, project.GetVersionAsString(&dep.Version))
-				color.Blue("Not found, fetching") // todo check if this cached package already exists on the filesystem
-				rdep, err := dependency.ResolveDependency(&dep, &cfg.Registries)
-				if err != nil {
-					ErrorQuit(fmt.Sprintf("An error occurred while resolving dependencies: %s\n", err))
-				}
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					displayStr := fmt.Sprintf("%s:%s:%s", dep.Group, dep.Name, project.GetVersionAsString(&dep.Version))
+					color.Cyan("[%s] Resolving", displayStr)
+					rdep, err := dependency.ResolveDependency(&dep, &cfg.Registries)
+					if err != nil {
+						ErrorQuit(fmt.Sprintf("[%s] An error occurred while resolving dependencies: %s\n", displayStr, err))
+					}
 
-				// cache the resolved dependency
-				err = dependency.CacheResolvedDependency(rdep)
-				if err != nil {
-					ErrorQuit(fmt.Sprintf("An error occurred while caching the resolved dependency: %s\n", err))
-				}
-
+					// cache the resolved dependency
+					err = dependency.CacheResolvedDependency(rdep)
+					if err != nil {
+						ErrorQuit(fmt.Sprintf("[%s] An error occurred while caching the resolved dependency: %s\n", displayStr, err))
+					}
+					color.Green("[%s] Cached", displayStr)
+				}()
 			}
+			wg.Wait()
 		},
 	}
 	root.AddCommand(sync)

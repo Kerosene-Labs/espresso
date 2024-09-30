@@ -2,20 +2,20 @@ package registry
 
 import (
 	"io/fs"
-	"os"
 	"path/filepath"
 
 	"hlafaille.xyz/espresso/v0/core/project"
+	"hlafaille.xyz/espresso/v0/core/util"
 )
 
 // GetCachePath gets the full cache path from the registry (ex: /home/vscode/.espresso/registries/espresso-registry)
 func GetRegistryCachePath(reg *project.Registry) (string, error) {
 	// get our home dir
-	wd, err := os.Getwd()
+	espressoPath, err := util.GetEspressoDirectoryPath()
 	if err != nil {
 		return "", err
 	}
-	return wd + "/.espresso/registries" + reg.Name, nil
+	return espressoPath + "/registries/" + reg.Name, nil
 }
 
 // GetRegistryCachePackagesLookupPath gets the full cache path of the registry package lookup
