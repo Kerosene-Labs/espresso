@@ -4,50 +4,37 @@
 
 package config
 
-import "os"
+import (
+	"os"
 
-// DoesExist gets if a config exists at the current directory
-func DoesExist() (*bool, error) {
-	configPath, err := GetConfigPath()
+	"kerosenelabs.com/espresso/core/context"
+)
+
+// DoesExist gets if the current context's project config exists
+func DoesExist(ctx *context.EnvironmentContext) (bool, error) {
+	prjCtx, err := ctx.GetProjectContext()
 	if err != nil {
-		return nil, err
+		return false, err
 	}
-
-	_, err = os.Stat(*configPath)
+	_, err = os.Stat(*prjCtx.CfgPath)
 	resp := err == nil || !os.IsNotExist(err)
-	return &resp, nil
+	return resp, nil
 }
 
-// GetConfig reads the config from the filesystem and returns a pointer to a ProjectConfig, or an error
-func GetConfig() (*ProjectConfig, error) {
-	// get the config path for this context
-	path, err := GetConfigPath()
-	if err != nil {
-		return nil, err
-	}
-
-	// read the file
-	file, err := os.ReadFile(*path)
-	if err != nil {
-		return nil, err
-	}
-
-	// unmarshal into a cfg struct
-	cfg, err := UnmarshalConfig(string(file))
-	if err != nil {
-		return nil, err
-	}
-	return cfg, nil
-}
-
-// Persist persists the given ProjectConfig to the filesystem
-func Persist(cfg *ProjectConfig) error {
-	marshalData, err := MarshalConfig(cfg)
+// Persist persists the configuration under the EnvironmentContext to the filesystem
+func Persist(ctx *context.EnvironmentContext) error {
+	// get the project context
+	prjCtx, err := ctx.GetProjectContext()
 	if err != nil {
 		return err
 	}
 
-	cfgPath, err := GetConfigPath()
+	marshalData, err := MarshalConfig(prjCtx.Cfg)
+	if err != nil {
+		return err
+	}
+
+	cfgPath, err := prjCtx.CfgPath
 	if err != nil {
 		return err
 	}
@@ -58,7 +45,7 @@ func Persist(cfg *ProjectConfig) error {
 		return err
 	}
 
-	if *cfgExists {
+	if cfgExists {
 		file, err := os.Open(*cfgPath)
 		if err != nil {
 			return err

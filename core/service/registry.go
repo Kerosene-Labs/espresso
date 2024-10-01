@@ -12,7 +12,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
-	"kerosenelabs.com/espresso/core/config"
 	"kerosenelabs.com/espresso/core/context"
 	"kerosenelabs.com/espresso/core/registry"
 	"kerosenelabs.com/espresso/core/util"
@@ -20,19 +19,25 @@ import (
 
 // QueryRegistries is a service function for querying all registries declared within a project
 func QueryRegistries(term string) {
-	// get the config
-	cfg, err := config.GetConfig()
+	// get the environment context
+	ctx, err := context.GetEnvironmentContext()
 	if err != nil {
-		panic(fmt.Sprintf("An error occurred while reading the config: %s\n", err))
+		util.ErrorQuit("An error occurred while getting the environment context: %s", err)
+	}
+
+	// get our project context
+	prjCtx, err := ctx.GetProjectContext()
+	if err != nil {
+		util.ErrorQuit("An error occurred while getting the project context: %s", err)
 	}
 
 	// iterate over each registry, get its packages
 	var filteredPkgs []registry.Package = []registry.Package{}
-	for _, reg := range cfg.Registries {
+	for _, reg := range prjCtx.Cfg.Registries {
 		color.Blue("Checking '%s'", reg.Name)
 		regPkgs, err := registry.GetRegistryPackages(reg)
 		if err != nil {
-			panic(fmt.Sprintf("An error occurred while fetching packages from the '%s' registry cache: %s", reg.Name, err))
+			util.ErrorQuit("An error occurred while fetching packages from the '%s' registry cache: %s", reg.Name, err)
 		}
 
 		// filter by name
@@ -85,12 +90,12 @@ func InvalidateRegistryCaches() {
 		invalWg.Add(1)
 		go func() {
 			defer invalWg.Done()
-			color.Cyan("-- [%s] Invalidating cache...", reg.Name)
+			color.Cyan("[%s] Invalidating cache", reg.Name)
 			err = registry.InvalidateRegistryCache(&reg)
 			if err != nil {
-				util.ErrorQuit(fmt.Sprintf("An error occurred while invalidaing cache(s): %s\n", err))
+				util.ErrorQuit("An error occurred while invalidaing cache(s): %s", err)
 			}
-			color.Blue("-- [%s] Invalidated", reg.Name)
+			color.Blue("[%s] Invalidated", reg.Name)
 		}()
 	}
 	invalWg.Wait()
@@ -101,7 +106,7 @@ func InvalidateRegistryCaches() {
 		dlWg.Add(1)
 		go func() {
 			defer dlWg.Done()
-			color.Cyan("-- [%s] Downloading archive", reg.Name)
+			color.Cyan("[%s] Downloading archive", reg.Name)
 			err = registry.CacheRegistry(&reg)
 			if err != nil {
 				util.ErrorQuit(fmt.Sprintf("An error occurred while downloading the registry archive: %s\n", err))

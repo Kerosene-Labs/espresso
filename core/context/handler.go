@@ -15,13 +15,14 @@ var envCtx *EnvironmentContext = nil
 
 // ProjectContext provides context for the running instance's current project (if any)
 type ProjectContext struct {
-	Cfg *config.ProjectConfig
+	Cfg     *config.ProjectConfig
+	CfgPath *string
 }
 
 // EnvironmentContext provides context for the given runtime environment. For example,
 // it contains information about the current project (if any), current toolchain, etc.
 type EnvironmentContext struct {
-	Wd     string
+	Wd     *string
 	prjCtx *ProjectContext
 }
 
@@ -30,11 +31,19 @@ func (eCtx EnvironmentContext) GetProjectContext() (*ProjectContext, error) {
 	if eCtx.prjCtx != nil {
 		return eCtx.prjCtx, nil
 	}
-	cfg, err := config.GetConfig()
+
+	// get our config path
+	cfgPath, err := getConfigPath()
 	if err != nil {
 		return nil, err
 	}
-	return &ProjectContext{Cfg: cfg}, nil
+
+	// get our config
+	cfg, err := getConfig()
+	if err != nil {
+		return nil, err
+	}
+	return &ProjectContext{Cfg: cfg, CfgPath: &cfgPath}, nil
 }
 
 // GetEnvironmentContext returns a pointer to context for the current environment.
@@ -50,7 +59,7 @@ func GetEnvironmentContext() (*EnvironmentContext, error) {
 	}
 
 	envCtx = &EnvironmentContext{
-		Wd: wd,
+		Wd: &wd,
 	}
 
 	return envCtx, nil
