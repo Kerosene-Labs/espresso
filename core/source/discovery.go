@@ -1,10 +1,16 @@
-package project
+// Copyright (c) 2024 Kerosene Labs
+// This file is part of Espresso, which is licensed under the MIT License.
+// See the LICENSE file for details.
+
+package source
 
 import (
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"kerosenelabs.com/espresso/core/context/project"
 )
 
 // SourceFIle represents a .java source file on the filesystem
@@ -15,7 +21,7 @@ type SourceFile struct {
 
 // DiscoverSourceFiles iterates over the project's base package looking for .java files
 // TODO: make this a goroutine?
-func DiscoverSourceFiles(cfg *ProjectConfig) ([]SourceFile, error) {
+func DiscoverSourceFiles(cfg project.ProjectConfig) ([]SourceFile, error) {
 	// get the source path
 	srcPath, err := GetSourcePath(cfg)
 	if err != nil {

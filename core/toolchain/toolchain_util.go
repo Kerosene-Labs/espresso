@@ -1,14 +1,18 @@
+// Copyright (c) 2024 Kerosene Labs
+// This file is part of Espresso, which is licensed under the MIT License.
+// See the LICENSE file for details.
+
 package toolchain
 
 import (
 	"os"
 
-	"hlafaille.xyz/espresso/v0/core/project"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/context/project"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // GetBuildPath gets the absolute path to the build directory
-func GetBuildPath(cfg *project.ProjectConfig) (*string, error) {
+func GetBuildPath(cfg project.ProjectConfig) (*string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, err
@@ -24,7 +28,7 @@ func GetBuildPath(cfg *project.ProjectConfig) (*string, error) {
 }
 
 // GetDistPath gets the absolute path to the dist directory
-func GetDistPath(cfg *project.ProjectConfig) (*string, error) {
+func GetDistPath(cfg project.ProjectConfig) (*string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, err

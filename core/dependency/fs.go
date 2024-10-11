@@ -1,9 +1,13 @@
+// Copyright (c) 2024 Kerosene Labs
+// This file is part of Espresso, which is licensed under the MIT License.
+// See the LICENSE file for details.
+
 package dependency
 
 import (
 	"os"
 
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // EnsurePackagesDirectory ensures the packages directory exists under the given registry cache.

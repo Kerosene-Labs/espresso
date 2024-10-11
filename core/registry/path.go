@@ -1,15 +1,19 @@
+// Copyright (c) 2024 Kerosene Labs
+// This file is part of Espresso, which is licensed under the MIT License.
+// See the LICENSE file for details.
+
 package registry
 
 import (
 	"io/fs"
 	"path/filepath"
 
-	"hlafaille.xyz/espresso/v0/core/project"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/context/project"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // GetCachePath gets the full cache path from the registry (ex: /home/vscode/.espresso/registries/espresso-registry)
-func GetRegistryCachePath(reg *project.Registry) (string, error) {
+func GetRegistryCachePath(reg project.Registry) (string, error) {
 	// get our home dir
 	espressoPath, err := util.GetEspressoDirectoryPath()
 	if err != nil {
@@ -20,7 +24,7 @@ func GetRegistryCachePath(reg *project.Registry) (string, error) {
 
 // GetRegistryCachePackagesLookupPath gets the full cache path of the registry package lookup
 // (ex: /home/vscode/.espresso/registries/espresso-registry/lookup/espresso-registry-main/packages)
-func GetRegistryCachePackagesLookupPath(reg *project.Registry) (string, error) {
+func GetRegistryCachePackagesLookupPath(reg project.Registry) (string, error) {
 	regCachePath, err := GetRegistryCachePath(reg)
 	if err != nil {
 		return "", err
@@ -32,7 +36,7 @@ func GetRegistryCachePackagesLookupPath(reg *project.Registry) (string, error) {
 // and looks for group directories (ex: org.projectlombok)
 func walkRegistryLookup(reg project.Registry) ([]string, error) {
 	// get the cache path
-	cachePath, err := GetRegistryCachePackagesLookupPath(&reg)
+	cachePath, err := GetRegistryCachePackagesLookupPath(reg)
 	if err != nil {
 		return []string{}, err
 	}

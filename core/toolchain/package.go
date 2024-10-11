@@ -1,3 +1,7 @@
+// Copyright (c) 2024 Kerosene Labs
+// This file is part of Espresso, which is licensed under the MIT License.
+// See the LICENSE file for details.
+
 package toolchain
 
 import (
@@ -5,12 +9,12 @@ import (
 	"os"
 	"os/exec"
 
-	"hlafaille.xyz/espresso/v0/core/project"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/context/project"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // GenerateManifest generates a JVM manifest
-func GenerateManifest(cfg *project.ProjectConfig) string {
+func GenerateManifest(cfg project.ProjectConfig) string {
 	base := "Manifest-Version: 1.0\n"
 	base += "Main-Class: " + cfg.BasePackage + ".Main\n"
 	base += "Created-By: Espresso"
@@ -18,7 +22,7 @@ func GenerateManifest(cfg *project.ProjectConfig) string {
 }
 
 // Write the Manifest to the build directory
-func WriteManifest(cfg *project.ProjectConfig) error {
+func WriteManifest(cfg project.ProjectConfig) error {
 	// get the path where it should live
 	buildPath, err := GetBuildPath(cfg)
 	path := *buildPath + "/MANIFEST.MF"
@@ -43,7 +47,7 @@ func WriteManifest(cfg *project.ProjectConfig) error {
 }
 
 // PackageClasses creates a .jar of the given classes
-func PackageClasses(cfg *project.ProjectConfig) error {
+func PackageClasses(cfg project.ProjectConfig) error {
 	command := cfg.Toolchain.Path + "/bin/jar"
 	args := []string{"cfm"}
 

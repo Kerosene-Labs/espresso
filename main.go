@@ -2,8 +2,11 @@ package main
 
 import (
 	"github.com/spf13/cobra"
-	"hlafaille.xyz/espresso/v0/cli"
+	"kerosenelabs.com/espresso/cli"
 )
+
+var CommitSha string
+var Version string
 
 func main() {
 	var root = &cobra.Command{
@@ -11,6 +14,7 @@ func main() {
 		Short: "A modern Java build tool.",
 	}
 
+	root.AddCommand(cli.GetVersionCommand())
 	root.AddCommand(cli.GetCleanCommand())
 	root.AddCommand(cli.GetBuildCommand())
 	root.AddCommand(cli.GetInitCommand())

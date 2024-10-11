@@ -2,6 +2,15 @@
 // This file is part of Espresso, which is licensed under the MIT License.
 // See the LICENSE file for details.
 
-package extension
+package util
 
-// TODO: write out the software bill of materials extension here
+import (
+	"os"
+
+	"github.com/fatih/color"
+)
+
+func ErrorQuit(msg string, args ...any) {
+	color.Red(msg+"\n", args...)
+	os.Exit(1)
+}

@@ -1,3 +1,7 @@
+// Copyright (c) 2024 Kerosene Labs
+// This file is part of Espresso, which is licensed under the MIT License.
+// See the LICENSE file for details.
+
 package registry
 
 import (
@@ -8,8 +12,8 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
-	"hlafaille.xyz/espresso/v0/core/project"
-	"hlafaille.xyz/espresso/v0/core/util"
+	"kerosenelabs.com/espresso/core/context/project"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // Package is a high level abstraction on top of the raw filesystem based registry caching. Package represents
@@ -58,7 +62,7 @@ func MarshalPackageDeclaration(pkgDecl *PackageDeclaration) (string, error) {
 }
 
 // InvalidateRegistry invalidates a particular registry
-func InvalidateRegistryCache(reg *project.Registry) error {
+func InvalidateRegistryCache(reg project.Registry) error {
 	// get our home dir
 	cachePath, err := GetRegistryCachePath(reg)
 	if err != nil {
@@ -71,7 +75,7 @@ func InvalidateRegistryCache(reg *project.Registry) error {
 }
 
 // CacheRegistry downloads a zip archive representing an espresso registry and extracts it to the proper directory
-func CacheRegistry(reg *project.Registry) error {
+func CacheRegistry(reg project.Registry) error {
 	// get our cache path
 	cachePath, err := GetRegistryCachePath(reg)
 	if err != nil {
@@ -100,7 +104,6 @@ func CacheRegistry(reg *project.Registry) error {
 	}
 
 	// extract the archive
-	fmt.Println("Extracting")
 	util.Unzip(cachePath+"/archive.zip", cachePath+"/lookup")
 
 	// check if the registry lookup contains a dependencies folder
@@ -112,7 +115,6 @@ func CacheRegistry(reg *project.Registry) error {
 		fmt.Println("An eror occurred: this registry's lookup appears invalid: no packages directory")
 	}
 
-	fmt.Println("Done")
 	return nil
 }
 
@@ -169,9 +171,6 @@ func GetRegistryPackages(reg project.Registry) ([]Package, error) {
 
 // GenerateSignature generates a unique signature of a package and version. This can be used to uniquely
 // reference a local copy of a packages across registries.
-func CalculatePackageSignature(dep *Package, version *PackageVersionDeclaration) string {
-	if dep == nil || version == nil {
-		panic("dep or version was nil")
-	}
+func CalculatePackageSignature(dep Package, version PackageVersionDeclaration) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf("%s:%s:%s", dep.Group, dep.Name, version.Number))))
 }
