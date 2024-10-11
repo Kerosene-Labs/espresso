@@ -8,7 +8,7 @@ import (
 )
 
 // getConfigPath gets the absolute path to the config file
-func getConfigPath() (string, error) {
+func GetConfigPath() (string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return "", err

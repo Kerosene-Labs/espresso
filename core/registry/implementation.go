@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
-	"kerosenelabs.com/espresso/core/config"
+	"kerosenelabs.com/espresso/core/context/project"
 	"kerosenelabs.com/espresso/core/util"
 )
 
@@ -24,7 +24,7 @@ type Package struct {
 	Description string
 	Versions    []PackageVersionDeclaration
 	Declaration PackageDeclaration
-	Registry    config.Registry
+	Registry    project.Registry
 }
 
 // PackageVersionDeclaration is the file format of a package version within a cached registry package
@@ -62,7 +62,7 @@ func MarshalPackageDeclaration(pkgDecl *PackageDeclaration) (string, error) {
 }
 
 // InvalidateRegistry invalidates a particular registry
-func InvalidateRegistryCache(reg *config.Registry) error {
+func InvalidateRegistryCache(reg project.Registry) error {
 	// get our home dir
 	cachePath, err := GetRegistryCachePath(reg)
 	if err != nil {
@@ -75,7 +75,7 @@ func InvalidateRegistryCache(reg *config.Registry) error {
 }
 
 // CacheRegistry downloads a zip archive representing an espresso registry and extracts it to the proper directory
-func CacheRegistry(reg *config.Registry) error {
+func CacheRegistry(reg project.Registry) error {
 	// get our cache path
 	cachePath, err := GetRegistryCachePath(reg)
 	if err != nil {
@@ -119,7 +119,7 @@ func CacheRegistry(reg *config.Registry) error {
 }
 
 // GetRegistryPackageDeclarations parses all package declarations within the cache for a given registry
-func GetRegistryPackages(reg config.Registry) ([]Package, error) {
+func GetRegistryPackages(reg project.Registry) ([]Package, error) {
 	// get the package group paths
 	pkgGrpPths, err := walkRegistryLookup(reg)
 	if err != nil {
@@ -171,9 +171,6 @@ func GetRegistryPackages(reg config.Registry) ([]Package, error) {
 
 // GenerateSignature generates a unique signature of a package and version. This can be used to uniquely
 // reference a local copy of a packages across registries.
-func CalculatePackageSignature(dep *Package, version *PackageVersionDeclaration) string {
-	if dep == nil || version == nil {
-		panic("dep or version was nil")
-	}
+func CalculatePackageSignature(dep Package, version PackageVersionDeclaration) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf("%s:%s:%s", dep.Group, dep.Name, version.Number))))
 }

@@ -17,7 +17,7 @@ func GetProjectContext() (*ProjectContext, error) {
 	var err error
 	once.Do(func() {
 		// get the config path
-		configPath, e := getConfigPath()
+		configPath, e := GetConfigPath()
 		if e != nil {
 			err = e
 			return

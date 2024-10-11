@@ -7,12 +7,12 @@ package toolchain
 import (
 	"os"
 
-	"kerosenelabs.com/espresso/core/config"
+	"kerosenelabs.com/espresso/core/context/project"
 	"kerosenelabs.com/espresso/core/util"
 )
 
 // GetBuildPath gets the absolute path to the build directory
-func GetBuildPath(cfg *config.ProjectConfig) (*string, error) {
+func GetBuildPath(cfg project.ProjectConfig) (*string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, err
@@ -28,7 +28,7 @@ func GetBuildPath(cfg *config.ProjectConfig) (*string, error) {
 }
 
 // GetDistPath gets the absolute path to the dist directory
-func GetDistPath(cfg *config.ProjectConfig) (*string, error) {
+func GetDistPath(cfg project.ProjectConfig) (*string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, err

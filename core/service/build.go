@@ -10,32 +10,26 @@ import (
 	"sync"
 
 	"github.com/fatih/color"
-	"kerosenelabs.com/espresso/core/context"
+	"kerosenelabs.com/espresso/core/context/project"
 	"kerosenelabs.com/espresso/core/dependency"
-	"kerosenelabs.com/espresso/core/project"
 	"kerosenelabs.com/espresso/core/registry"
+	"kerosenelabs.com/espresso/core/source"
 	"kerosenelabs.com/espresso/core/toolchain"
 	"kerosenelabs.com/espresso/core/util"
 )
 
 // BuildProject is a service function for building the current project
 func BuildProject() {
-	// get the environment context
-	ctx, err := context.GetEnvironmentContext()
-	if err != nil {
-		util.ErrorQuit("An error occurred while getting the environment context: %s", err)
-	}
-
 	// get our project context
-	prjCtx, err := ctx.GetProjectContext()
+	projectContext, err := project.GetProjectContext()
 	if err != nil {
 		util.ErrorQuit("An error occurred while getting the project context: %s", err)
 	}
 
-	color.Cyan("-- [%s] Beginning build, please ensure you are compliant with all dependency licenses\n", prjCtx.Cfg.Name)
+	color.Cyan("-- [%s] Beginning build, please ensure you are compliant with all dependency licenses\n", projectContext.Config.Name)
 
 	// discover source files
-	files, err := project.DiscoverSourceFiles(prjCtx.Cfg)
+	files, err := source.DiscoverSourceFiles(projectContext.Config)
 	if err != nil {
 		util.ErrorQuit(fmt.Sprintf("An error occurred while discovering source files: %s\n", err))
 	}
@@ -45,9 +39,9 @@ func BuildProject() {
 	var wg sync.WaitGroup
 	for _, value := range files {
 		wg.Add(1)
-		go func(f *project.SourceFile) {
+		go func(f *source.SourceFile) {
 			defer wg.Done()
-			err := toolchain.CompileSourceFile(prjCtx.Cfg, &value)
+			err := toolchain.CompileSourceFile(projectContext.Config, value)
 			if err != nil {
 				util.ErrorQuit("An error occurred while compiling a source file: %s\n", err)
 			}
@@ -58,26 +52,26 @@ func BuildProject() {
 
 	// package the project
 	color.Cyan("-- Packaging distributable")
-	err = toolchain.PackageClasses(prjCtx.Cfg)
+	err = toolchain.PackageClasses(projectContext.Config)
 	if err != nil {
 		util.ErrorQuit(fmt.Sprintf("An error occurred while packaging the classes: %s\n", err))
 	}
 	color.Blue("Finished packaging distributable")
 
 	// iterate over each dependency, resolve it and copy it
-	distPath, err := toolchain.GetDistPath(prjCtx.Cfg)
+	distPath, err := toolchain.GetDistPath(projectContext.Config)
 	if err != nil {
 		util.ErrorQuit(fmt.Sprintf("Unable to get dist path: %s", err))
 	}
 	os.MkdirAll(*distPath+"/libs", 0755)
 	var depCopyWg sync.WaitGroup
 	color.Cyan("-- Copying dependency packages to distributable")
-	for _, dep := range prjCtx.Cfg.Dependencies {
+	for _, dep := range projectContext.Config.Dependencies {
 		depCopyWg.Add(1)
 		go func() {
 			defer depCopyWg.Done()
 			color.Cyan("-- Beginning copy of '%s:%s' to distributable", dep.Group, dep.Name)
-			resolved, err := dependency.ResolveDependency(&dep, &prjCtx.Cfg.Registries)
+			resolved, err := dependency.ResolveDependency(dep, projectContext.Config.Registries)
 			if err != nil {
 				util.ErrorQuit(fmt.Sprintf("Unable to resolve dependency: %s", err))
 			}

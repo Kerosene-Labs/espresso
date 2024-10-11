@@ -9,12 +9,12 @@ import (
 	"os"
 	"os/exec"
 
-	"kerosenelabs.com/espresso/core/config"
+	"kerosenelabs.com/espresso/core/context/project"
 	"kerosenelabs.com/espresso/core/util"
 )
 
 // GenerateManifest generates a JVM manifest
-func GenerateManifest(cfg *config.ProjectConfig) string {
+func GenerateManifest(cfg project.ProjectConfig) string {
 	base := "Manifest-Version: 1.0\n"
 	base += "Main-Class: " + cfg.BasePackage + ".Main\n"
 	base += "Created-By: Espresso"
@@ -22,7 +22,7 @@ func GenerateManifest(cfg *config.ProjectConfig) string {
 }
 
 // Write the Manifest to the build directory
-func WriteManifest(cfg *config.ProjectConfig) error {
+func WriteManifest(cfg project.ProjectConfig) error {
 	// get the path where it should live
 	buildPath, err := GetBuildPath(cfg)
 	path := *buildPath + "/MANIFEST.MF"
@@ -47,7 +47,7 @@ func WriteManifest(cfg *config.ProjectConfig) error {
 }
 
 // PackageClasses creates a .jar of the given classes
-func PackageClasses(cfg *config.ProjectConfig) error {
+func PackageClasses(cfg project.ProjectConfig) error {
 	command := cfg.Toolchain.Path + "/bin/jar"
 	args := []string{"cfm"}
 

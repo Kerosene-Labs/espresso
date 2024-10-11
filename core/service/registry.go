@@ -12,28 +12,22 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
-	"kerosenelabs.com/espresso/core/context"
+	"kerosenelabs.com/espresso/core/context/project"
 	"kerosenelabs.com/espresso/core/registry"
 	"kerosenelabs.com/espresso/core/util"
 )
 
 // QueryRegistries is a service function for querying all registries declared within a project
 func QueryRegistries(term string) {
-	// get the environment context
-	ctx, err := context.GetEnvironmentContext()
-	if err != nil {
-		util.ErrorQuit("An error occurred while getting the environment context: %s", err)
-	}
-
 	// get our project context
-	prjCtx, err := ctx.GetProjectContext()
+	projectContext, err := project.GetProjectContext()
 	if err != nil {
 		util.ErrorQuit("An error occurred while getting the project context: %s", err)
 	}
 
 	// iterate over each registry, get its packages
 	var filteredPkgs []registry.Package = []registry.Package{}
-	for _, reg := range prjCtx.Cfg.Registries {
+	for _, reg := range projectContext.Config.Registries {
 		color.Blue("Checking '%s'", reg.Name)
 		regPkgs, err := registry.GetRegistryPackages(reg)
 		if err != nil {
@@ -72,26 +66,20 @@ func QueryRegistries(term string) {
 
 // InvalidateRegistryCaches is a service function that invalidates and recaches all registries declared within the project.
 func InvalidateRegistryCaches() {
-	// get the environment context
-	ctx, err := context.GetEnvironmentContext()
-	if err != nil {
-		util.ErrorQuit("An error occurred while getting the environment context: %s", err)
-	}
-
 	// get our project context
-	prjCtx, err := ctx.GetProjectContext()
+	projectContext, err := project.GetProjectContext()
 	if err != nil {
 		util.ErrorQuit("An error occurred while getting the project context: %s", err)
 	}
 
 	// iterate over each registry, invalidate it
 	var invalWg sync.WaitGroup
-	for _, reg := range prjCtx.Cfg.Registries {
+	for _, reg := range projectContext.Config.Registries {
 		invalWg.Add(1)
 		go func() {
 			defer invalWg.Done()
 			color.Cyan("[%s] Invalidating cache", reg.Name)
-			err = registry.InvalidateRegistryCache(&reg)
+			err = registry.InvalidateRegistryCache(reg)
 			if err != nil {
 				util.ErrorQuit("An error occurred while invalidaing cache(s): %s", err)
 			}
@@ -102,12 +90,12 @@ func InvalidateRegistryCaches() {
 
 	// iterate over each registry, download the zip
 	var dlWg sync.WaitGroup
-	for _, reg := range prjCtx.Cfg.Registries {
+	for _, reg := range projectContext.Config.Registries {
 		dlWg.Add(1)
 		go func() {
 			defer dlWg.Done()
 			color.Cyan("[%s] Downloading archive", reg.Name)
-			err = registry.CacheRegistry(&reg)
+			err = registry.CacheRegistry(reg)
 			if err != nil {
 				util.ErrorQuit(fmt.Sprintf("An error occurred while downloading the registry archive: %s\n", err))
 			}

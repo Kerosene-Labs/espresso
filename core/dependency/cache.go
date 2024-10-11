@@ -5,7 +5,6 @@
 package dependency
 
 import (
-	"errors"
 	"os"
 
 	"kerosenelabs.com/espresso/core/registry"
@@ -13,13 +12,9 @@ import (
 )
 
 // CacheResolvedDependency fetches the resolved dependency from the internet
-func CacheResolvedDependency(rdep *ResolvedDependency) error {
-	if rdep == nil {
-		return errors.New("rdep was nil")
-	}
-
+func CacheResolvedDependency(resolvedDependency ResolvedDependency) error {
 	// get our package signature
-	packageSignature := registry.CalculatePackageSignature(rdep.Package, rdep.PackageVersion)
+	packageSignature := registry.CalculatePackageSignature(resolvedDependency.Package, resolvedDependency.PackageVersion)
 
 	// get where we should store this package
 	espressoPath, err := util.GetEspressoDirectoryPath()
@@ -35,7 +30,7 @@ func CacheResolvedDependency(rdep *ResolvedDependency) error {
 	}
 
 	// download the file
-	err = util.DownloadFile(pkgPath, rdep.PackageVersion.ArtifactUrl)
+	err = util.DownloadFile(pkgPath, resolvedDependency.PackageVersion.ArtifactUrl)
 	if err != nil {
 		return err
 	}

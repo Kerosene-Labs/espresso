@@ -69,7 +69,7 @@ func MarshalConfig(cfg ProjectConfig) (*string, error) {
 // readConfigFromFileSystem reads and parses the config from the filesystem.
 func readConfigFromFileSystem() (ProjectConfig, error) {
 	// get the config path
-	configPath, err := getConfigPath()
+	configPath, err := GetConfigPath()
 	if err != nil {
 		return ProjectConfig{}, err
 	}

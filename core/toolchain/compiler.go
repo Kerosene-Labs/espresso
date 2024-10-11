@@ -8,13 +8,13 @@ import (
 	"errors"
 	"os/exec"
 
-	"kerosenelabs.com/espresso/core/config"
-	"kerosenelabs.com/espresso/core/project"
+	"kerosenelabs.com/espresso/core/context/project"
+	"kerosenelabs.com/espresso/core/source"
 	"kerosenelabs.com/espresso/core/util"
 )
 
 // CompileSourceFile compiles the sourcefile with the given project toolchain
-func CompileSourceFile(cfg *config.ProjectConfig, srcFile *project.SourceFile) error {
+func CompileSourceFile(cfg project.ProjectConfig, srcFile source.SourceFile) error {
 	// build our classpath value
 	cpVal := ""
 	if util.IsDebugMode() {
