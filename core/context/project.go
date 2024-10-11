@@ -2,7 +2,7 @@
 // This file is part of Espresso, which is licensed under the MIT License.
 // See the LICENSE file for details.
 
-package config
+package context
 
 import "gopkg.in/yaml.v3"
 

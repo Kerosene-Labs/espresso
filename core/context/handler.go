@@ -6,8 +6,6 @@ package context
 
 import (
 	"os"
-
-	"kerosenelabs.com/espresso/core/config"
 )
 
 // singular reference to the environment context for this instance
@@ -15,7 +13,7 @@ var envCtx *EnvironmentContext = nil
 
 // ProjectContext provides context for the running instance's current project (if any)
 type ProjectContext struct {
-	Cfg     *config.ProjectConfig
+	Cfg     *ProjectConfig
 	CfgPath *string
 }
 
