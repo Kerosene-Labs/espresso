@@ -7,15 +7,14 @@ package dependency
 import (
 	"errors"
 	"fmt"
-
-	"kerosenelabs.com/espresso/core/config"
+	"kerosenelabs.com/espresso/core/context/project"
 	"kerosenelabs.com/espresso/core/project"
 	"kerosenelabs.com/espresso/core/registry"
 )
 
 // ResolvedDependency represents a match between a project dependency and a registry package.
 type ResolvedDependency struct {
-	Dependency     *config.Dependency
+	Dependency     *context.Dependency
 	Package        *registry.Package
 	PackageVersion *registry.PackageVersionDeclaration
 }
