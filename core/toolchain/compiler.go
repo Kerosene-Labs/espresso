@@ -23,6 +23,8 @@ func CompileSourceFile(cfg project.ProjectConfig, srcFile source.SourceFile) err
 		cpVal = "src/java"
 	}
 
+	// TODO: ensure dep jars are included in the classpath
+
 	// run the compiler
 	command := cfg.Toolchain.Path + "/bin/javac"
 	args := []string{}

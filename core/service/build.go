@@ -82,11 +82,13 @@ func BuildProject() {
 				util.ErrorQuit(fmt.Sprintf("Unable to get the espresso home: %s", espressoPath))
 			}
 			signature := registry.CalculatePackageSignature(resolved.Package, resolved.PackageVersion)
-			cachedPackageHome := espressoPath + "/cachedPackages" + signature + ".jar"
+			cachedPackageHome := espressoPath + "/cachedPackages/" + signature + ".jar"
 
 			// copy the file
-			util.CopyFile(cachedPackageHome, *distPath+"/libs")
-
+			err = util.CopyFile(cachedPackageHome, fmt.Sprintf(*distPath+"/libs/%s.jar", registry.CalculatePackageSignature(resolved.Package, resolved.PackageVersion)))
+			if err != nil {
+				util.ErrorQuit(fmt.Sprintf("Unable to copy file: %s", err))
+			}
 			color.Blue("Copied '%s:%s' to distributable", dep.Group, dep.Name)
 		}()
 	}
