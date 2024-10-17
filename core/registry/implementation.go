@@ -169,8 +169,8 @@ func GetRegistryPackages(reg project.Registry) ([]Package, error) {
 	return pkgs, nil
 }
 
-// GenerateSignature generates a unique signature of a package and version. This can be used to uniquely
+// CalculatePackageSignature generates a unique signature of a package and version. This can be used to uniquely
 // reference a local copy of a packages across registries.
-func CalculatePackageSignature(dep Package, version PackageVersionDeclaration) string {
-	return fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf("%s:%s:%s", dep.Group, dep.Name, version.Number))))
+func CalculatePackageSignature(registry project.Registry, pkg Package, version PackageVersionDeclaration) string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf("%s:%s:%s:%s", registry.Name, pkg.Group, pkg.Name, version.Number))))
 }

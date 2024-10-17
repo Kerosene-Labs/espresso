@@ -9,13 +9,14 @@ import (
 	"os/exec"
 
 	"kerosenelabs.com/espresso/core/context/project"
+	"kerosenelabs.com/espresso/core/dependency"
 	"kerosenelabs.com/espresso/core/source"
 	"kerosenelabs.com/espresso/core/util"
 )
 
 // CompileSourceFile compiles the sourcefile with the given project toolchain
 func CompileSourceFile(cfg project.ProjectConfig, srcFile source.SourceFile) error {
-	// build our classpath value
+	// initialize our classpath value
 	cpVal := ""
 	if util.IsDebugMode() {
 		cpVal = "ESPRESSO_DEBUG/src/java"
@@ -23,7 +24,23 @@ func CompileSourceFile(cfg project.ProjectConfig, srcFile source.SourceFile) err
 		cpVal = "src/java"
 	}
 
-	// TODO: ensure dep jars are included in the classpath
+	// iterate over dependencies, resolve each one and add it to the classpath argument value
+	for _, dep := range cfg.Dependencies {
+		// resolve our dependency
+		resolvedDependency, err := dependency.ResolveDependency(dep, cfg.Registries)
+		if err != nil {
+			return err
+		}
+
+		// get our cache path for the jar
+		depCachePath, err := resolvedDependency.GetCachePath()
+		if err != nil {
+			return err
+		}
+
+		// append it to the classpath value
+		cpVal += ":" + depCachePath.Absolute
+	}
 
 	// run the compiler
 	command := cfg.Toolchain.Path + "/bin/javac"
