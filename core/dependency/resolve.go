@@ -9,13 +9,30 @@ import (
 
 	"kerosenelabs.com/espresso/core/context/project"
 	"kerosenelabs.com/espresso/core/registry"
+	"kerosenelabs.com/espresso/core/util"
 )
 
 // ResolvedDependency represents a match between a project dependency and a registry package.
 type ResolvedDependency struct {
-	Dependency     project.Dependency
-	Package        registry.Package
-	PackageVersion registry.PackageVersionDeclaration
+	Dependency       project.Dependency
+	Package          registry.Package
+	PackageVersion   registry.PackageVersionDeclaration
+	Registry         project.Registry
+	PackageSignature string
+}
+
+// GetCachePath returns the absolute filesystem path to where the cached package should be located. Please note,
+// this function will always return the path of the .jar even if it does not exist.
+//
+// You should use PackageCachePath.DoesExist() to ensure this path exists if you're depennding on the package.
+func (resolvedDependency ResolvedDependency) GetCachePath() (util.Path, error) {
+	packageSignature := registry.CalculatePackageSignature(resolvedDependency.Registry, resolvedDependency.Package, resolvedDependency.PackageVersion)
+	espressoPath, err := util.GetEspressoDirectoryPath()
+	if err != nil {
+		return util.Path{}, err
+	}
+	pkgPath := espressoPath + "/cachedPackages/" + packageSignature + ".jar"
+	return util.Path{Absolute: pkgPath}, nil
 }
 
 // ResolveDependency resolves the given dependency. This function will iterate over the given registries,
@@ -39,9 +56,11 @@ func ResolveDependency(dependency project.Dependency, registries []project.Regis
 				for _, version := range pkg.Versions {
 					if version.Number == depVersionStr {
 						return ResolvedDependency{
-							Dependency:     dependency,
-							Package:        pkg,
-							PackageVersion: version,
+							Dependency:       dependency,
+							Package:          pkg,
+							PackageVersion:   version,
+							Registry:         reg,
+							PackageSignature: registry.CalculatePackageSignature(reg, pkg, version),
 						}, nil
 					}
 				}

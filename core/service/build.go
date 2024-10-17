@@ -12,7 +12,6 @@ import (
 	"github.com/fatih/color"
 	"kerosenelabs.com/espresso/core/context/project"
 	"kerosenelabs.com/espresso/core/dependency"
-	"kerosenelabs.com/espresso/core/registry"
 	"kerosenelabs.com/espresso/core/source"
 	"kerosenelabs.com/espresso/core/toolchain"
 	"kerosenelabs.com/espresso/core/util"
@@ -26,7 +25,8 @@ func BuildProject() {
 		util.ErrorQuit("An error occurred while getting the project context: %s", err)
 	}
 
-	color.Cyan("-- [%s] Beginning build, please ensure you are compliant with all dependency licenses\n", projectContext.Config.Name)
+	color.Cyan("- Beginning build of '%s'", projectContext.Config.Name)
+	color.Cyan("-- Note: please ensure you are compliant with all dependency licenses")
 
 	// discover source files
 	files, err := source.DiscoverSourceFiles(projectContext.Config)
@@ -45,7 +45,7 @@ func BuildProject() {
 			if err != nil {
 				util.ErrorQuit("An error occurred while compiling a source file: %s\n", err)
 			}
-			color.Blue("Compiled: " + f.Path)
+			color.Black("--- Compiled: " + f.Path)
 		}(&value)
 	}
 	wg.Wait()
@@ -56,7 +56,7 @@ func BuildProject() {
 	if err != nil {
 		util.ErrorQuit(fmt.Sprintf("An error occurred while packaging the classes: %s\n", err))
 	}
-	color.Blue("Finished packaging distributable")
+	color.Blue("-- Finished packaging distributable")
 
 	// iterate over each dependency, resolve it and copy it
 	distPath, err := toolchain.GetDistPath(projectContext.Config)
@@ -70,26 +70,25 @@ func BuildProject() {
 		depCopyWg.Add(1)
 		go func() {
 			defer depCopyWg.Done()
-			color.Cyan("-- Beginning copy of '%s:%s' to distributable", dep.Group, dep.Name)
 			resolved, err := dependency.ResolveDependency(dep, projectContext.Config.Registries)
 			if err != nil {
 				util.ErrorQuit(fmt.Sprintf("Unable to resolve dependency: %s", err))
 			}
 
-			// calculate the should-be location of this jar locally
-			espressoPath, err := util.GetEspressoDirectoryPath()
+			// get the cache path for this package
+			cachePath, err := resolved.GetCachePath()
 			if err != nil {
-				util.ErrorQuit(fmt.Sprintf("Unable to get the espresso home: %s", espressoPath))
+				util.ErrorQuit("Unable to find cache path for dependency: %s", err)
 			}
-			signature := registry.CalculatePackageSignature(resolved.Package, resolved.PackageVersion)
-			cachedPackageHome := espressoPath + "/cachedPackages" + signature + ".jar"
 
 			// copy the file
-			util.CopyFile(cachedPackageHome, *distPath+"/libs")
-
-			color.Blue("Copied '%s:%s' to distributable", dep.Group, dep.Name)
+			err = util.CopyFile(cachePath.Absolute, fmt.Sprintf(*distPath+"/libs/%s.jar", dep.Name))
+			if err != nil {
+				util.ErrorQuit(fmt.Sprintf("Unable to copy file: %s", err))
+			}
+			color.Black("--- Copied '%s:%s' to distributable", dep.Group, dep.Name)
 		}()
 	}
 	depCopyWg.Wait()
-	color.Green("Done!")
+	color.Green("- Done!")
 }
