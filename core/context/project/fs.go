@@ -1,6 +1,7 @@
 package project
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -23,8 +24,8 @@ func GetConfigPath() (string, error) {
 	}
 }
 
-// getSourcePath gets the path at which there should be source files
-func getSourcePath(projectConfig ProjectConfig) (string, error) {
+// GetSourcePath gets the path at which there should be source files
+func GetSourcePath(projectConfig ProjectConfig) (string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return "", err
@@ -74,7 +75,11 @@ func Persist(projectContext ProjectContext) error {
 
 // WriteExampleCode is an internal function that writes example code to a newly created project
 func WriteExampleCode(projectContext ProjectContext) error {
-	os.MkdirAll(projectContext.SourcePath, 0755)
+	fmt.Printf("%s", projectContext)
+	err := os.MkdirAll(projectContext.SourcePath, 0755)
+	if err != nil {
+		return err
+	}
 
 	// create the main file
 	file, err := os.Create(projectContext.SourcePath + "/Main.java")
