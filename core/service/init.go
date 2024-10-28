@@ -54,19 +54,32 @@ func InitializeProject(name string, basePkg *string) {
 		util.ErrorQuit("An error occurred while getting the config path: %s", err)
 	}
 
+	// get our source path
+	sourcePath, err := project.GetSourcePath(config)
+	if err != nil {
+		util.ErrorQuit("An error occurred while getting the source path: %s", err)
+	}
+
 	// create our project context
 	projectContext := project.ProjectContext{
 		Config:     config,
 		ConfigPath: configPath,
+		SourcePath: sourcePath,
 	}
 
 	// write some example code
 	println("Creating base package, writing example code")
-	project.WriteExampleCode(projectContext)
+	err = project.WriteExampleCode(projectContext)
+	if err != nil {
+		util.ErrorQuit("An error occurred while writing example code: %s", err)
+	}
 
 	// persist the config
 	println("Persisting project configuration")
-	project.Persist(projectContext)
+	err = project.Persist(projectContext)
+	if err != nil {
+		util.ErrorQuit("An error occurred while persisting the configuration: %s", err)
+	}
 
 	println("Done.")
 }
