@@ -33,7 +33,7 @@ func capLinesAt72Bytes(input string) []string {
 	}
 
 	if currentLineBytes > 0 {
-		lines = append(lines, currentLine) // Add the last line if not empty
+		lines = append(lines, " "+currentLine) // Add the last line if not empty
 	}
 
 	return lines
@@ -60,6 +60,7 @@ func GenerateManifest(cfg project.ProjectConfig) (string, error) {
 		base += line + "\n"
 	}
 
+	println(base)
 	return base, nil
 }
 
