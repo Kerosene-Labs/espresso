@@ -60,7 +60,6 @@ func GenerateManifest(cfg project.ProjectConfig) (string, error) {
 		base += line + "\n"
 	}
 
-	println(base)
 	return base, nil
 }
 
