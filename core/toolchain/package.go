@@ -8,7 +8,8 @@ import (
 	"errors"
 	"os"
 	"os/exec"
-	"unicode/utf8"
+
+	"strings"
 
 	"kerosenelabs.com/espresso/core/context/project"
 	"kerosenelabs.com/espresso/core/dependency"
@@ -20,20 +21,32 @@ func capLinesAt72Bytes(input string) []string {
 	var currentLine string
 	var currentLineBytes int
 
-	for len(input) > 0 {
-		r, size := utf8.DecodeRuneInString(input) // Get next rune and its byte size
-		if currentLineBytes+size > 72 {
-			lines = append(lines, currentLine) // Add current line to lines
-			currentLine = ""                   // Reset current line
-			currentLineBytes = 0               // Reset byte counter
+	words := strings.Fields(input) // Split the input into words based on spaces
+
+	for _, word := range words {
+		// Prepare the word to be added, including a preceding space if necessary
+		wordToAdd := word
+		if currentLineBytes > 0 {
+			wordToAdd = " " + word
 		}
-		currentLine += string(r) // Add the rune to the current line
-		currentLineBytes += size // Track the byte size
-		input = input[size:]     // Move to the next part of the string
+		wordBytes := len(wordToAdd)
+
+		if currentLineBytes+wordBytes > 72 {
+			// Line length exceeded; append the current line to lines
+			lines = append(lines, currentLine)
+			// Start a new line with a leading space as per manifest continuation rules
+			currentLine = " " + word
+			currentLineBytes = len(currentLine)
+		} else {
+			// Append the word to the current line
+			currentLine += wordToAdd
+			currentLineBytes += wordBytes
+		}
 	}
 
+	// Append the last line if it's not empty
 	if currentLineBytes > 0 {
-		lines = append(lines, " "+currentLine) // Add the last line if not empty
+		lines = append(lines, currentLine)
 	}
 
 	return lines
@@ -46,21 +59,24 @@ func GenerateManifest(cfg project.ProjectConfig) (string, error) {
 	base += "Created-By: Espresso\n"
 
 	// iterate over dependencies, resolve them and add them to the manifest base
-	classPath := "Class-Path: "
-	for _, dep := range cfg.Dependencies {
-		resolvedDependency, err := dependency.ResolveDependency(dep, cfg.Registries)
-		if err != nil {
-			return "", err
+	if len(cfg.Dependencies) > 0 {
+		classPath := "Class-Path: "
+		for _, dep := range cfg.Dependencies {
+			resolvedDependency, err := dependency.ResolveDependency(dep, cfg.Registries)
+			if err != nil {
+				return "", err
+			}
+			classPath += "libs/" + resolvedDependency.Package.Name + ".jar "
 		}
-		classPath += "libs/" + resolvedDependency.Package.Name + ".jar "
+
+		splitLines := capLinesAt72Bytes(classPath)
+		for _, line := range splitLines {
+			base += line + "\n"
+		}
 	}
 
-	splitLines := capLinesAt72Bytes(classPath)
-	for _, line := range splitLines {
-		base += line + "\n"
-	}
-
-	return base, nil
+	println(strings.TrimSuffix(base, "\n"))
+	return strings.TrimSuffix(base, "\n"), nil
 }
 
 // Write the Manifest to the build directory
